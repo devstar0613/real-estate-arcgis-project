@@ -21,7 +21,9 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer'
 import Polygon from "@arcgis/core/geometry/Polygon.js";
 import { Sidebar } from 'primereact/sidebar';
+import { Divider } from 'primereact/divider';
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import { parcel_fields_from_regrid } from "./Data Fields";
 
 const popupRoot = document.createElement('div');
 
@@ -731,24 +733,24 @@ export default function MapComponent() {
         <Sidebar visible={visible} onHide={() => setVisible(false)}>
           <p style={{fontSize:'25px', marginBottom:'30px', fontWeight:'500'}}>Information</p>
           
-          {/* {displayData && selectedMap == "Parcel_View" &&
+          {displayData && selectedMap == "Parcel_View" &&
             <div style={{lineHeight:'30px', marginLeft:'15px', fontWeight:'400'}}>
-              <p><span style={{fontWeight:'500'}}>Area Code:</span>&nbsp; {displayData.FIPS_NR}</p>
-              <p><span style={{fontWeight:'500'}}>County Name:</span>&nbsp; {displayData.COUNTY_NM}</p>
-              <p><span style={{fontWeight:'500'}}>Parcel Identification Number:</span>&nbsp; {displayData.PARCEL_ID_NR}</p>
-              <p><span style={{fontWeight:'500'}}>Original Parcel ID:</span>&nbsp; {displayData.ORIG_PARCEL_ID}</p>
-              <p><span style={{fontWeight:'500'}}>Property Address:</span>&nbsp; {displayData.SITUS_ADDRESS}</p>
-              <p><span style={{fontWeight:'500'}}>Sub-address:</span>&nbsp; {displayData.SUB_ADDRESS}</p>
-              <p><span style={{fontWeight:'500'}}>City Name:</span>&nbsp; {displayData.SITUS_CITY_NM}</p>
-              <p><span style={{fontWeight:'500'}}>ZIP Code:</span>&nbsp; {displayData.SITUS_ZIP_NR}</p>
-              <p><span style={{fontWeight:'500'}}>Land Use Code:</span>&nbsp; {displayData.LANDUSE_CD}</p>
-              <p><span style={{fontWeight:'500'}}>Land Value:</span>&nbsp; {displayData.VALUE_LAND}</p>
-              <p><span style={{fontWeight:'500'}}>Building Value:</span>&nbsp; {displayData.VALUE_BLDG}</p>
-              <p><span style={{fontWeight:'500'}}>Parcel Data Link:</span>&nbsp; <span><a style={{color:"blue"}} href={displayData.DATA_LINK}>View</a></span></p>
-              <p><span style={{fontWeight:'500'}}>Total Area:</span>&nbsp; {displayData.Shape__Area}</p>
-              <p><span style={{fontWeight:'500'}}>Boundary Length:</span>&nbsp; {displayData.Shape__Length}</p>
+              {parcel_fields_from_regrid.map((item) => (
+                <div key={item.field}>
+                  <p>
+                    <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                    {item.label === 'Zoning Code Link' ? (
+                      <span><a style={{ color: "blue" }} href={displayData[item.field]}>View</a></span>
+                    ) : (
+                      (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
+                      // (displayData[item.label].includes('Date') || displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toLocaleString() : displayData[item.field]
+                    )}
+                  </p>
+                  {/* <Divider type="solid"/> */}
+                </div>
+              ))}
             </div>
-          } */}
+          }
 
           {displayData && (selectedMap == "Income_Centroids" || selectedMap == "Income_Boundaries") &&
             <div style={{lineHeight:'30px', marginLeft:'15px', fontWeight:'400'}}>
@@ -813,7 +815,7 @@ export default function MapComponent() {
             </div>
           }
 
-          <pre>{JSON.stringify(displayData, null, 2)}</pre>
+          {/* <pre>{JSON.stringify(displayData, null, 2)}</pre> */}
         </Sidebar>
       </div>
     </section>
