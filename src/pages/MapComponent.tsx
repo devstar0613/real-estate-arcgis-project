@@ -113,9 +113,6 @@ export default function MapComponent() {
   }
   
   const mapFunction = (mapType:string) => {
-    var esriConfig = {
-      portalUrl: "https://loaylq04mkqd09ex.esri.com/arcgis"
-    };
     const map = new Map({
       basemap: 'hybrid',
     });
@@ -128,8 +125,7 @@ export default function MapComponent() {
 
     switch(mapType){
       case 'Parcel_View':
-        featureURL = "https://services.arcgis.com/jsIt88o09Q0r1j8h/arcgis/rest/services/Current_Parcels/FeatureServer/0/";
-        // featureURL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+        featureURL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
         break;
       case 'Income_Centroids':
         featureURL = "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/ACS_Household_Income_Distribution_Centroids/FeatureServer/2";
@@ -144,23 +140,23 @@ export default function MapComponent() {
         featureURL = ''
     }
     
-    const trailsRenderer = {
-      type: "simple",
-      symbol: {
-        type: "simple-fill",
-        color: [0, 0, 200, 0.2],
-        style: "solid",
-        outline: {
-          color: [0, 200, 255, 0.8],
-          type: "simple-line",
-          style: "solid",
-          width: '1px'
-        }
-      }
-    };
-    const trailsRendererForKoordinates = {
+    // const trailsRenderer = {
+    //   type: "simple",
+    //   symbol: {
+    //     type: "simple-fill",
+    //     color: [0, 0, 200, 0.2],
+    //     style: "solid",
+    //     outline: {
+    //       color: [0, 200, 255, 0.8],
+    //       type: "simple-line",
+    //       style: "solid",
+    //       width: '1px'
+    //     }
+    //   }
+    // };
+    const trailsRendererForRegrid = {
       type: "unique-value",
-      valueExpression: "IIf(Find('#', $feature.PropAddr10) > -1, 'yellow', 'default')",
+      valueExpression: "IIf(Find('#', $feature.address) > -1, 'yellow', 'default')",
       uniqueValueInfos: [
         {
           value: 'yellow',
@@ -197,19 +193,12 @@ export default function MapComponent() {
         }
       ]
     };
-    if(mapType == 'Parcel_View' || mapType == 'Income_Centroids' || mapType == 'Income_Boundaries' || (mapType == 'Client_Data' && kmlUrl)){
-      if(mapType == 'Client_Data'){
+    if(mapType == 'Parcel_View' || mapType == 'Income_Centroids' || mapType == 'Income_Boundaries'){
+      if(mapType == 'Parcel_View') {
         featureLayer = new FeatureLayer({
           url: featureURL,
           // @ts-ignore
-          renderer:trailsRenderer,
-          opacity: 1
-        });
-      }else if(mapType == 'Parcel_View') {
-        featureLayer = new FeatureLayer({
-          url: featureURL,
-          // @ts-ignore
-          renderer:trailsRendererForKoordinates,
+          renderer:trailsRendererForRegrid,
           opacity: 1
         });
       }
@@ -265,7 +254,7 @@ export default function MapComponent() {
       },
     });
     
-    if(mapType == 'Client_Data' && kmlUrl){
+    if(mapType == 'Parcel_View' && kmlUrl){
       const kmlLayer = new KMLLayer({
         // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
         url: kmlUrl,
@@ -437,7 +426,7 @@ export default function MapComponent() {
               localStorage.setItem('Address', response.address);
             }
 
-            const parcelData = await getSelectedData(mapType!=="Client_Data"? "Parcel_View": "Client_Data", event.mapPoint, 2);
+            const parcelData = await getSelectedData("Parcel_View", event.mapPoint, 2);
             const incomeData = await getSelectedData("Income_Boundaries", event.mapPoint, 2);
 
             console.log(
@@ -461,14 +450,6 @@ export default function MapComponent() {
             if(mapType == 'Elevation'){
               setDisplayData({elevation:elevationResult});
               setVisible(true);
-            }
-            if(mapType == 'Client_Data'){
-              // const regridAPIendpoint = `https://app.regrid.com/api/v2/parcels/point?lat=${event.mapPoint.latitude}&lon=${event.mapPoint.longitude}&token=Nl1E4Rkk1GyTq1RK7TkUq5J6wfHwh0h4DygFYxdUsfQl965F9VWz8tqiwb4xcyOF`
-              // const parcelFromRegrid = await axios.get(regridAPIendpoint)
-              // console.log("=======regridAPIendpoint=====", regridAPIendpoint)
-              // console.log("=======parcelFromRegrid=====", parcelFromRegrid)
-              // setDisplayData({elevation:elevationResult});
-              // setVisible(true);
             }
             await getMapPointData({address:response.address, parcelData:parcelData, incomeData:incomeData, elevation:`${elevationResult}m`})
             // showPopup(event.mapPoint, response.address, mapView);
@@ -633,7 +614,7 @@ export default function MapComponent() {
 
   useEffect(() => {
     if (kmlUrl) {
-      mapFunction('Client_Data');
+      mapFunction('Parcel_View');
     }
   }, [kmlUrl]);
 
@@ -696,20 +677,19 @@ export default function MapComponent() {
               onChange={(e)=>changeSelectionHandler(e.target.value)}
             >
               <option value="Satellite">Satellite Map</option>
-              <option value="Parcel_View">Parcel Viewer Map</option>
+              <option value="Parcel_View">Parcel Viewer Map | Client Data</option>
               <option value="Income_Centroids">Income Distribution with Centroids</option>
               <option value="Income_Boundaries">Income Distribution with Boundaries</option>
               <option value="Elevation">Elevation Map</option>
-              <option value="Client_Data">Client Data</option>
             </select>
           </div>
-          {selectedMap=="Client_Data" && 
+          {selectedMap=="Parcel_View" && 
             <div style={{marginLeft:'40px'}}>
               <input type="file" accept=".kml,.kmz" style={{marginTop:'6px', color:"white", width:"250px"}} onChange={handleFileUpload} />
             </div>
           }
         </div>
-        {selectedMap=="Client_Data" && 
+        {selectedMap == "Parcel_View" && 
           <div style={{display:"flex", marginRight:'90px', marginTop:'5px'}}>
             <div style={{marginBottom:'-2px'}}>
               <a href={kmlUrl?'https://storage.googleapis.com/atlasproai-dashboard/addresses_within_polygon.csv':'#'}>
@@ -751,7 +731,7 @@ export default function MapComponent() {
         <Sidebar visible={visible} onHide={() => setVisible(false)}>
           <p style={{fontSize:'25px', marginBottom:'30px', fontWeight:'500'}}>Information</p>
           
-          {displayData && selectedMap == "Parcel_View" &&
+          {/* {displayData && selectedMap == "Parcel_View" &&
             <div style={{lineHeight:'30px', marginLeft:'15px', fontWeight:'400'}}>
               <p><span style={{fontWeight:'500'}}>Area Code:</span>&nbsp; {displayData.FIPS_NR}</p>
               <p><span style={{fontWeight:'500'}}>County Name:</span>&nbsp; {displayData.COUNTY_NM}</p>
@@ -768,7 +748,7 @@ export default function MapComponent() {
               <p><span style={{fontWeight:'500'}}>Total Area:</span>&nbsp; {displayData.Shape__Area}</p>
               <p><span style={{fontWeight:'500'}}>Boundary Length:</span>&nbsp; {displayData.Shape__Length}</p>
             </div>
-          }
+          } */}
 
           {displayData && (selectedMap == "Income_Centroids" || selectedMap == "Income_Boundaries") &&
             <div style={{lineHeight:'30px', marginLeft:'15px', fontWeight:'400'}}>
@@ -833,49 +813,7 @@ export default function MapComponent() {
             </div>
           }
 
-          {displayData && selectedMap == "Client_Data" && kmlUrl &&
-            <div style={{lineHeight:'30px', marginLeft:'15px', fontWeight:'400'}}>
-              <p><span style={{fontWeight:'500'}}>Owner:</span>&nbsp; {displayData.Owner}</p>
-              <p><span style={{fontWeight:'500'}}>Owner2:</span>&nbsp; {displayData.Owner2}</p>
-              <p><span style={{fontWeight:'500'}}>STLength:</span>&nbsp; {displayData.STLength.toFixed(2)}</p>
-              <p><span style={{fontWeight:'500'}}>Date_Updated:</span>&nbsp; {new Date(displayData.Date_Updat).toLocaleString()}</p>
-              <p><span style={{fontWeight:'500'}}>Acres:</span>&nbsp; {displayData.Acres}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_Full:</span>&nbsp; {displayData.PropAddr10}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_City:</span>&nbsp; {displayData.PropAddr_6}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_State:</span>&nbsp; {displayData.PropAddr_1}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_StreetName:</span>&nbsp; {displayData.PropAddres}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_StreetType:</span>&nbsp; {displayData.PropAddr_8}</p>
-              <p><span style={{fontWeight:'500'}}>PropAddress_Zip:</span>&nbsp; {displayData.PropAddr_5}</p>
-              <p><span style={{fontWeight:'500'}}>PIN:</span>&nbsp; {displayData.PIN}</p>
-              <p><span style={{fontWeight:'500'}}>Mailing_Address:</span>&nbsp; {displayData.Mailing_Ad}</p>
-              <p><span style={{fontWeight:'500'}}>Mailing_City:</span>&nbsp; {displayData.Mailing_Ci}</p>
-              <p><span style={{fontWeight:'500'}}>Mailing_State:</span>&nbsp; {displayData.Mailing_St}</p>
-              <p><span style={{fontWeight:'500'}}>Mailing_Zip:</span>&nbsp; {displayData.Mailing_Zi}</p>
-              <p><span style={{fontWeight:'500'}}>Land_Use_1:</span>&nbsp; {displayData.Land_Use_1}</p>
-              <p><span style={{fontWeight:'500'}}>Land_Use_2:</span>&nbsp; {displayData.Land_Use_2}</p>
-              <p><span style={{fontWeight:'500'}}>Land_Use_3:</span>&nbsp; {displayData.Land_Use_3}</p>
-              <p><span style={{fontWeight:'500'}}>Land_Use_4:</span>&nbsp; {displayData.Land_Use_4}</p>
-              <p><span style={{fontWeight:'500'}}>Sale_Price:</span>&nbsp; {displayData.Sale_Price}</p>
-              <p><span style={{fontWeight:'500'}}>Sale_MM:</span>&nbsp; {displayData.Sale_MM}</p>
-              <p><span style={{fontWeight:'500'}}>Sale_DD:</span>&nbsp; {displayData.Sale_DD}</p>
-              <p><span style={{fontWeight:'500'}}>Sale_YY:</span>&nbsp; {displayData.Sale_YY}</p>
-              <p><span style={{fontWeight:'500'}}>Sale_Quality:</span>&nbsp; {displayData.Sale_Quali}</p>
-              <p><span style={{fontWeight:'500'}}>STArea:</span>&nbsp; {displayData.STArea.toFixed(2)}</p>
-              <p><span style={{fontWeight:'500'}}>Shape__Area:</span>&nbsp; {displayData.Shape__Area.toFixed(2)}</p>
-              <p><span style={{fontWeight:'500'}}>Shape__Length:</span>&nbsp; {displayData.Shape__Length.toFixed(2)}</p>
-              <p><span style={{fontWeight:'500'}}>YearBuilt:</span>&nbsp; {displayData.YearBuilt}</p>
-              <p><span style={{fontWeight:'500'}}>Legal_Description:</span>&nbsp; {displayData.Legal_Desc}</p>
-              <p><span style={{fontWeight:'500'}}>Municipality:</span>&nbsp; {displayData.Municipali}</p>
-              <p><span style={{fontWeight:'500'}}>District_DryTrash:</span>&nbsp; {displayData.District_D}</p>
-              <p><span style={{fontWeight:'500'}}>District_TAD:</span>&nbsp; {displayData.District_T}</p>
-              <p><span style={{fontWeight:'500'}}>District_Transit:</span>&nbsp; {displayData.District_1}</p>
-              <p><span style={{fontWeight:'500'}}>District_EnterpriseZone:</span>&nbsp; {displayData.District_E}</p>
-              <p><span style={{fontWeight:'500'}}>Commercial_Cat:</span>&nbsp; {displayData.Commercial}</p>
-              <p><span style={{fontWeight:'500'}}>Property_Use:</span>&nbsp; {displayData.Property_U}</p>
-            </div>
-          }
-
-          {/* <pre>{JSON.stringify(displayData, null, 2)}</pre> */}
+          <pre>{JSON.stringify(displayData, null, 2)}</pre>
         </Sidebar>
       </div>
     </section>
