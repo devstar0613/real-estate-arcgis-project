@@ -1,0 +1,26 @@
+.p-sidebar {
+    background-color: white;
+    /* margin-top: 233px;
+    margin-left: 60px; */
+    padding-top: 30px;
+    padding-left: 15px;
+    padding-right: 30px;
+    width: 400px;
+}
+
+.p-sidebar-close {
+    padding-top: -20px;
+}
+
+.avatar_dropdown {
+    width: 100px;
+    height: 35px;
+    background-color: white;
+    position: absolute;
+    right: 33px;
+    top: 73px;
+}
+
+.logout_button:hover {
+    color: grey;
+}
