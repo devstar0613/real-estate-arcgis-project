@@ -156,7 +156,7 @@ export default function MapComponent() {
     // };
     const trailsRendererForRegrid = {
       type: "unique-value",
-      valueExpression: "IIf(Find('#', $feature.address) > -1, 'yellow', 'default')",
+      valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0, 'yellow', 'default')",
       uniqueValueInfos: [
         {
           value: 'yellow',
