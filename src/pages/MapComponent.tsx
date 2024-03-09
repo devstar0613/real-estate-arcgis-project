@@ -62,9 +62,6 @@ export default function MapComponent() {
       case 'Income_Boundaries':
         featureURL = "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/ACS_10_14_Household_Income_Distribution_Boundaries/FeatureServer/2";
         break;
-      case 'Client_Data':
-        featureURL = "https://services6.arcgis.com/f0Sebh8k8T7kZDhr/arcgis/rest/services/Tybee_Island_parcel_SHP/FeatureServer/0"
-        break;
       default:
         featureURL = ''
     }
@@ -135,9 +132,6 @@ export default function MapComponent() {
       case 'Income_Boundaries':
         featureURL = "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/ACS_10_14_Household_Income_Distribution_Boundaries/FeatureServer/2";
         break;
-      case 'Client_Data':
-        featureURL = "https://services6.arcgis.com/f0Sebh8k8T7kZDhr/arcgis/rest/services/Tybee_Island_parcel_SHP/FeatureServer/0"
-        break;
       default:
         featureURL = ''
     }
@@ -158,7 +152,8 @@ export default function MapComponent() {
     // };
     const trailsRendererForRegrid = {
       type: "unique-value",
-      valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
+      // valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
+      valueExpression: "IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Planned', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1 || Find('Agriculture', $feature.zoning_description) > -1 || Find('Agriculture', $feature.zoning_type) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1, 'Conservation', 'yellow')))",
       uniqueValueInfos: [
         {
           value: 'yellow',
@@ -172,10 +167,10 @@ export default function MapComponent() {
           }
         },
         {
-          value: 'default',
+          value: 'blue',
           symbol: {
             type: "simple-fill",
-            color: [0, 0, 200, 0.2], // Default color with opacity
+            color: [0, 200, 255, 0.2], // Default color with opacity
             outline: {
               color: [0, 200, 255, 0.8],
               width: 1
@@ -183,12 +178,23 @@ export default function MapComponent() {
           }
         },
         {
-          value: 'selected',
+          value: 'green',
           symbol: {
             type: "simple-fill",
             color: [0, 255, 0, 0.2], // Green color with opacity
             outline: {
               color: [0, 255, 0, 0.8],
+              width: 1
+            }
+          }
+        },
+        {
+          value: 'Conservation',
+          symbol: {
+            type: "simple-fill",
+            color: [200, 200, 200, 0.2], 
+            outline: {
+              color: [200, 200, 200, 0.8],
               width: 1
             }
           }
