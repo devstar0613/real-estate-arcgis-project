@@ -670,7 +670,7 @@ export default function MapComponent() {
       const file = event.target.files[0];
 
       if (file) {
-        setFileName(file.name);
+        setFileName(file.name.split('.')[0]);
         const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
           params:{
             file: file.name,
