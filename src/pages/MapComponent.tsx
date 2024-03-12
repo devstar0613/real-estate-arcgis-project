@@ -20,6 +20,7 @@ import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol.js";
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer'
 import Polygon from "@arcgis/core/geometry/Polygon.js";
+import * as query from "@arcgis/core/rest/query.js";
 import { Sidebar } from 'primereact/sidebar';
 import { Divider } from 'primereact/divider';
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
@@ -46,6 +47,8 @@ export default function MapComponent() {
   const [selectedMap, setSelectedMap] = useState<string>('Satellite');
   const [addedLayer, setAddedLayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
   const [displayData, setDisplayData] = useState<any | null>(null);
+  const [selectedPolygon, setSelectedPolygon] = useState<[number, number][]>([])
+  const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
 
   const [visible, setVisible] = useState(false);
 
@@ -153,7 +156,7 @@ export default function MapComponent() {
     const trailsRendererForRegrid = {
       type: "unique-value",
       // valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
-      valueExpression: "IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Planned', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1 || Find('Agriculture', $feature.zoning_description) > -1 || Find('Agriculture', $feature.zoning_type) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'Conservation', 'yellow')))",
+      valueExpression: "IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'Conservation', 'yellow')))",
       uniqueValueInfos: [
         {
           value: 'yellow',
@@ -338,7 +341,7 @@ export default function MapComponent() {
               const coordinatePairs = coordinateString?.trim().split(' ');
               console.log(coordinatePairs); // You can process the KML data here
          
-              const rings: any[][] = [];
+              const rings: [number, number][] = [];
               // Loop through the coordinate pairs and create a ring
               for (const coordinatePair of coordinatePairs) {
                 const [lon, lat] = coordinatePair.split(',');
@@ -352,11 +355,39 @@ export default function MapComponent() {
                 // Add the point to the ring
                 rings.push([point.x, point.y]);
               }
-    
+              // setSelectedPolygon(rings)
+              // console.log('=================start================')
+              // let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+
+              // query.executeQueryJSON(queryUrl, {  // autocasts as new Query()
+              //   where: "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'",
+              //   // where: "geoid = '13051' AND zoning_type = 'Residential'",
+              //   start: 0, // Specify the starting record offset
+              //   num: 3000,
+              //   outFields: [ "geoid", "address", "owner", "parcelnumb" ],
+              //   orderByFields: ["id ASC"],
+              //   returnGeometry: false,
+              //   // geometry: {
+              //   //   // @ts-ignore
+              //   //   // rings: [rings], 
+              //   //   spatialReference: {
+              //   //     wkid: 4326
+              //   //   }
+              //   // }
+              //   // @ts-ignore
+              // }).then(function(results){
+              //   // results is a FeatureSet containing an array of graphic features
+              //   console.log('==========results.features=============',results.features, results.features.length);
+              // }, function(error){
+              //     console.log(error); // will print error in console, if any
+              //   });
+              // console.log('=================end================')
+              // console.log('============rings===========',rings); // You can process the KML data here
+
               const polygon = new Polygon({
                 hasZ: true,
                 hasM: true,
-                rings: rings,
+                rings: [rings],
                 spatialReference: { wkid: 4326 }
               });
     
@@ -421,6 +452,24 @@ export default function MapComponent() {
         setView(mapView);
         mapView.popupEnabled = false;
         mapView.on('click', async (event) => {
+          // console.log('=================start================')
+          // let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+
+          // query.executeQueryJSON(queryUrl, {  // autocasts as new Query()
+          //   where: "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'",
+          //   // where: "geoid = '13051' AND zoning_type = 'Residential'",
+          //   start: 35192686, // Specify the starting record offset
+          //   num: 3000,
+          //   outFields: [ "geoid", "address", "owner", "parcelnumb" ],
+          //   orderByFields: ["id ASC"]
+          //   // @ts-ignore
+          // }).then(function(results){
+          //   // results is a FeatureSet containing an array of graphic features
+          //   console.log('==========results.features=============',results.features);
+          // }, function(error){
+          //     console.log(error); // will print error in console, if any
+          //   });
+          // console.log('=================end================')
           console.log('------------->event.mapPoint',event.mapPoint)
           try {
             const response = await locationToAddress(
@@ -508,6 +557,7 @@ export default function MapComponent() {
   const changeSelectionHandler = (mapType:string) => {
     console.log('---------->mapType',mapType)
     setSelectedMap(mapType);
+    // view.map.removeAll();
     mapFunction(mapType);
   }
 
