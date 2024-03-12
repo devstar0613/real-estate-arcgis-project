@@ -24,3 +24,7 @@
 .logout_button:hover {
     color: grey;
 }
+
+.esri-attribution{
+    display: none!important;
+}

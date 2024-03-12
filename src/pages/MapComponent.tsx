@@ -24,8 +24,9 @@ import * as query from "@arcgis/core/rest/query.js";
 import { Sidebar } from 'primereact/sidebar';
 import { Divider } from 'primereact/divider';
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid } from "./Data Fields";
-
+import Attribution from '@arcgis/core/widgets/Attribution';
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
@@ -265,7 +266,17 @@ export default function MapComponent() {
         },
       },
     });
+
+    // // Customize the attribution text
+    // const customAttribution = new Attribution({
+    //   view: mapView,
+    //   itemDelimiter: ' | ',
+    //   //@ts-ignore
+    //   attributionText: 'Custom Attribution Text'
+    // });
     
+    // mapView.ui.add(customAttribution, 'manual');
+
     if(mapType == 'Parcel_View' && kmlUrl){
       const kmlLayer = new KMLLayer({
         // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
@@ -584,7 +595,7 @@ export default function MapComponent() {
       document.removeEventListener('click', handleDocumentClick);
     };
   }, []);
-  
+
   const changeSelectionHandler = (mapType:string) => {
     console.log('---------->mapType',mapType)
     setSelectedMap(mapType);
@@ -707,6 +718,23 @@ export default function MapComponent() {
     }
   }, [kmlUrl]);
 
+  const handleExportCSV = () => {
+    if(fetchParcelFlag){
+      const csv = unparse(fetchedParcels);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `test_parcels_within_polygon.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // console.log("=============fetchedParcels=============",fetchedParcels)
+    }else {
+      alert('Please upload polygon file or wait for processing!')
+    }
+  }
+
   return (
     <section id="map-page-container" className="w-full h-screen">
       <header
@@ -788,7 +816,7 @@ export default function MapComponent() {
                   className="mx-auto" // Adjust the class as needed for styling
                   width="33px"
                   style={{cursor:'pointer'}}
-                  onClick={()=>{if(fetchParcelFlag)console.log("=============fetchedParcels=============",fetchedParcels)}}
+                  onClick={handleExportCSV}
                 />
               {/* </a> */}
             </div>
