@@ -47,9 +47,10 @@ export default function MapComponent() {
   const [selectedMap, setSelectedMap] = useState<string>('Satellite');
   const [addedLayer, setAddedLayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
   const [displayData, setDisplayData] = useState<any | null>(null);
-  const [selectedPolygon, setSelectedPolygon] = useState<[number, number][]>([])
+  const [fetchedParcels, setFetchedParcels] = useState<any>([])
   const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
-
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>(null)
+  const [polygonRings, setPolygonRings] = useState<[number, number][]>([])
   const [visible, setVisible] = useState(false);
 
   const getSelectedData = async (mapType:string, point:Point, callType:number) => {
@@ -351,38 +352,14 @@ export default function MapComponent() {
                   longitude: parseFloat(lon),
                   latitude: parseFloat(lat),
                 });
-    
+
                 // Add the point to the ring
                 rings.push([point.x, point.y]);
               }
-              // setSelectedPolygon(rings)
-              // console.log('=================start================')
-              // let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
 
-              // query.executeQueryJSON(queryUrl, {  // autocasts as new Query()
-              //   where: "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'",
-              //   // where: "geoid = '13051' AND zoning_type = 'Residential'",
-              //   start: 0, // Specify the starting record offset
-              //   num: 3000,
-              //   outFields: [ "geoid", "address", "owner", "parcelnumb" ],
-              //   orderByFields: ["id ASC"],
-              //   returnGeometry: false,
-              //   // geometry: {
-              //   //   // @ts-ignore
-              //   //   // rings: [rings], 
-              //   //   spatialReference: {
-              //   //     wkid: 4326
-              //   //   }
-              //   // }
-              //   // @ts-ignore
-              // }).then(function(results){
-              //   // results is a FeatureSet containing an array of graphic features
-              //   console.log('==========results.features=============',results.features, results.features.length);
-              // }, function(error){
-              //     console.log(error); // will print error in console, if any
-              //   });
-              // console.log('=================end================')
-              // console.log('============rings===========',rings); // You can process the KML data here
+              setMapCenter(rings[0])
+              
+              console.log('============rings===========',rings); // You can process the KML data here
 
               const polygon = new Polygon({
                 hasZ: true,
@@ -390,7 +367,7 @@ export default function MapComponent() {
                 rings: [rings],
                 spatialReference: { wkid: 4326 }
               });
-    
+
               const markerSymbol = new SimpleFillSymbol({
                 color: [100, 0, 0, 0.1],
                 outline: {
@@ -404,6 +381,60 @@ export default function MapComponent() {
                 symbol: markerSymbol
               });
               mapView.graphics.add(polygonGraphic)
+
+              console.log('=================start================')
+              let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+
+              const queryParcels = new FeatureLayer({
+                url: queryUrl
+              });
+              const fetchAllParcels = async (query:any) => {
+                setFetchParcelFlag(false)
+                const allParcels = [];
+                let hasMore = true;
+                let start = 0;
+
+                while (hasMore) {
+                  query.start = start;
+                  query.num = 3000;
+
+                  const queryResult = await featureLayer.queryFeatures(query);
+                  const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
+                  console.log('========progressing Parcels=========',queryResult)
+                  allParcels.push(...transformedParcels);
+
+                  if (queryResult.exceededTransferLimit) {
+                    start += 3000;
+                  } else {
+                    hasMore = false;
+                  }
+                }
+                setFetchedParcels(allParcels)
+                setFetchParcelFlag(true)
+                return allParcels;
+              };
+
+              const query = queryParcels.createQuery();
+              query.geometry = polygon;
+              query.spatialRelationship = 'intersects';
+              query.returnGeometry = false;
+              query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
+                  "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc"];
+              // query.outFields = ["address", "owner", "parcelnumb"];
+              query.orderByFields = ["id ASC"]
+              const allParcels = await fetchAllParcels(query);
+              console.log('All parcels:', allParcels, allParcels.length);
+              // const query = queryParcels.createQuery();
+              // query.start = 0
+              // query.num = 3000;
+              // // query.where = "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'";
+              // query.geometry = polygon;
+              // query.spatialRelationship = 'intersects';
+              // query.returnGeometry = false;
+              // query.outFields = ["geoid", "address", "owner", "parcelnumb"];
+              // const queryResult = await featureLayer.queryFeatures(query);
+              // console.log('------->queryResult attributes',queryResult);
+              console.log('=================end================')
 
               // const circleLocation = calculateCircleFromPolygon(coordinatePairs);
               // console.log("===========circleLocation==========", circleLocation)
@@ -750,15 +781,16 @@ export default function MapComponent() {
         {selectedMap == "Parcel_View" && 
           <div style={{display:"flex", marginRight:'90px', marginTop:'5px'}}>
             <div style={{marginBottom:'-2px'}}>
-              <a href={kmlUrl?'https://storage.googleapis.com/atlasproai-dashboard/addresses_within_polygon.csv':'#'}>
+              {/* <a href={kmlUrl?'https://storage.googleapis.com/atlasproai-dashboard/addresses_within_polygon.csv':'#'}> */}
                 <img
                   src="top_export.png"
                   alt="Atlas Pro Intelligence Logo"
                   className="mx-auto" // Adjust the class as needed for styling
                   width="33px"
                   style={{cursor:'pointer'}}
+                  onClick={()=>{if(fetchParcelFlag)console.log("=============fetchedParcels=============",fetchedParcels)}}
                 />
-              </a>
+              {/* </a> */}
             </div>
             <div style={{marginLeft:'20px',marginTop:'2px'}}>
               <img
