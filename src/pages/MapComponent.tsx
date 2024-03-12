@@ -50,6 +50,7 @@ export default function MapComponent() {
   const [displayData, setDisplayData] = useState<any | null>(null);
   const [fetchedParcels, setFetchedParcels] = useState<any>([])
   const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
+  const [fileName, setFileName] = useState<string>('');
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null)
   const [polygonRings, setPolygonRings] = useState<[number, number][]>([])
   const [visible, setVisible] = useState(false);
@@ -669,6 +670,7 @@ export default function MapComponent() {
       const file = event.target.files[0];
 
       if (file) {
+        setFileName(file.name);
         const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
           params:{
             file: file.name,
@@ -725,7 +727,7 @@ export default function MapComponent() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `test_parcels_within_polygon.csv`);
+      link.setAttribute('download', `parcels_within_${fileName}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
