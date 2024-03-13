@@ -649,8 +649,14 @@ export default function MapComponent() {
                       rings.push([point.x, point.y]);
                     }
 
+                    const polygon_center = rings.reduce((acc, curr) => {
+                      return { lon: acc.lon + curr[0] / rings.length, lat: acc.lat + curr[1] / rings.length };
+                    }, { lon: 0, lat: 0 });
+
+                    console.log(polygon_center)
+
                     setPolygonRings(rings)
-                    setMapCenter(rings[0])
+                    setMapCenter([polygon_center.lon, polygon_center.lat])
                   }
                 }
               } catch (error) {
