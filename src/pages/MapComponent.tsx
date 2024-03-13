@@ -367,6 +367,9 @@ export default function MapComponent() {
                 'Land Use Code: Site': parcel.lbcs_site,
                 'Land Use Code Description: Site': parcel.lbcs_site_desc
               }));
+              // Sorting the updatedParcels array by Total Addresses Count from big to small
+              updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
+
               setFetchedParcels(updatedParcels)
               setFetchParcelFlag(true)
               return updatedParcels;
@@ -655,6 +658,7 @@ export default function MapComponent() {
                     }, { lon: 0, lat: 0 });
 
                     console.log(polygon_center)
+                    console.log("=========rings=====",rings)
 
                     setPolygonRings(rings)
                     setMapCenter([polygon_center.lon, polygon_center.lat])
