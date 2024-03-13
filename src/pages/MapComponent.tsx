@@ -677,7 +677,7 @@ export default function MapComponent() {
   };
 
   useEffect(() => {
-    if (polygonRings) {
+    if (polygonRings && selectedMap == 'Parcel_View') {
       mapFunction('Parcel_View');
     }
   }, [polygonRings]);
