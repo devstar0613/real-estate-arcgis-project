@@ -351,6 +351,7 @@ export default function MapComponent() {
                 'Second Owner Name': parcel.owner2,
                 'Second Owner Email': "",
                 'Second Owner Phone': "",
+                'Total Addresses Count': parcel.ll_address_count,
                 'Latitude': parcel.lat,
                 'Longitude': parcel.lon,
                 'Parcel Use Code': parcel.usecode,
@@ -376,7 +377,7 @@ export default function MapComponent() {
             query.spatialRelationship = 'intersects';
             query.returnGeometry = false;
             query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
-                "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc"];
+                "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc", "ll_address_count"];
             // query.outFields = ["address", "owner", "parcelnumb"];
             query.orderByFields = ["id ASC"]
             const allParcels = await fetchAllParcels(query);
