@@ -248,7 +248,7 @@ export default function MapComponent() {
       map,
       // seattle coordinates
       // center: [-122.335167, 47.608013],
-      center: [-80.84348087252627, 32.008940055682096],
+      center: mapCenter || [-80.84348087252627, 32.008940055682096],
       zoom: 13,
       // popupEnabled: true,
       popup: {
@@ -284,231 +284,121 @@ export default function MapComponent() {
         url: kmlUrl,
       });
       map.add(kmlLayer);
-      // const jsonLayer = new GeoJSONLayer({
-      //   url: 'https://storage.googleapis.com/atlasproai-dashboard/pr_gurabo.json',
-      // });
-      // map.add(jsonLayer);
-      
-      // const featureLayer = new FeatureLayer({
-      //   url: "https://services6.arcgis.com/f0Sebh8k8T7kZDhr/arcgis/rest/services/Tybee_Island_parcel_SHP/FeatureServer/0",
-      //   // @ts-ignore
-      //   // renderer:trailsRenderer,
-      //   opacity: 0.1
-      // })
-      // map.add(featureLayer);
 
-      // Function to calculate the center point and radius of the circle in meters
-      const calculateCircleFromPolygon = (polygonData: string[]) => {
-        // Convert polygon data to an array of [longitude, latitude] pairs
-        const coordinates = polygonData.map(coord => {
-          const [lon, lat] = coord.split(',').map(parseFloat);
-          return { lon, lat };
-        });
+      if(polygonRings){
+        const fetchParcelData = async () => {
+          try {
+            const polygon = new Polygon({
+              hasZ: true,
+              hasM: true,
+              rings: [polygonRings],
+              spatialReference: { wkid: 4326 }
+            });
 
-        // Calculate the center point of the polygon
-        const center = coordinates.reduce((acc, curr) => {
-          return { lon: acc.lon + curr.lon / coordinates.length, lat: acc.lat + curr.lat / coordinates.length };
-        }, { lon: 0, lat: 0 });
+            const markerSymbol = new SimpleFillSymbol({
+              color: [100, 0, 0, 0.1],
+              outline: {
+                color: [255, 0, 0],
+                width: 1,
+              },
+            });
 
-        // Function to convert degrees to radians
-        const degreesToRadians = (degrees: number) => {
-          return degrees * (Math.PI / 180);
-        };
+            const polygonGraphic = new Graphic({
+              geometry: polygon,
+              symbol: markerSymbol
+            });
+            mapView.graphics.add(polygonGraphic)
 
-        // Function to calculate the distance in meters between two points given their latitude and longitude
-        const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-          const R = 6371000; // Radius of the Earth in meters
-          const phi1 = degreesToRadians(lat1);
-          const phi2 = degreesToRadians(lat2);
-          const deltaPhi = degreesToRadians(lat2 - lat1);
-          const deltaLambda = degreesToRadians(lon2 - lon1);
+            console.log('=================start================')
+            let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
 
-          const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-                    Math.cos(phi1) * Math.cos(phi2) *
-                    Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const queryParcels = new FeatureLayer({
+              url: queryUrl
+            });
+            const fetchAllParcels = async (query:any) => {
+              setFetchParcelFlag(false)
+              const allParcels = [];
+              let hasMore = true;
+              let start = 0;
 
-          return R * c;
-        };
+              while (hasMore) {
+                query.start = start;
+                query.num = 3000;
 
-        // Calculate the radius of the circle as the distance from the center to the farthest point in the polygon
-        const radius = Math.max(...coordinates.map(coord => {
-          return haversineDistance(center.lat, center.lon, coord.lat, coord.lon);
-        }));
+                const queryResult = await featureLayer.queryFeatures(query);
+                const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
+                console.log('========progressing Parcels=========',queryResult)
+                allParcels.push(...transformedParcels);
 
-        return { center, radius };
-      };
-
-      const fetchKmlData = async () => {
-        try {
-          const response = await fetch(kmlUrl);
-          const kmlData = await response.text();
-          // console.log(kmlData);
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(kmlData, 'text/xml');
-
-          if(xmlDoc.getElementsByTagName('Polygon')[0]){
-            const coordinateString = xmlDoc.getElementsByTagName('coordinates')[0].textContent;
-            if(coordinateString){
-
-              const coordinatePairs = coordinateString?.trim().split(' ');
-              console.log(coordinatePairs); // You can process the KML data here
-         
-              const rings: [number, number][] = [];
-              // Loop through the coordinate pairs and create a ring
-              for (const coordinatePair of coordinatePairs) {
-                const [lon, lat] = coordinatePair.split(',');
-    
-                // Create a point from the lon/lat values
-                const point = new Point({
-                  longitude: parseFloat(lon),
-                  latitude: parseFloat(lat),
-                });
-
-                // Add the point to the ring
-                rings.push([point.x, point.y]);
-              }
-
-              setMapCenter(rings[0])
-              
-              console.log('============rings===========',rings); // You can process the KML data here
-
-              const polygon = new Polygon({
-                hasZ: true,
-                hasM: true,
-                rings: [rings],
-                spatialReference: { wkid: 4326 }
-              });
-
-              const markerSymbol = new SimpleFillSymbol({
-                color: [100, 0, 0, 0.1],
-                outline: {
-                  color: [255, 0, 0],
-                  width: 1,
-                },
-              });
-    
-              const polygonGraphic = new Graphic({
-                geometry: polygon,
-                symbol: markerSymbol
-              });
-              mapView.graphics.add(polygonGraphic)
-
-              console.log('=================start================')
-              let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
-
-              const queryParcels = new FeatureLayer({
-                url: queryUrl
-              });
-              const fetchAllParcels = async (query:any) => {
-                setFetchParcelFlag(false)
-                const allParcels = [];
-                let hasMore = true;
-                let start = 0;
-
-                while (hasMore) {
-                  query.start = start;
-                  query.num = 3000;
-
-                  const queryResult = await featureLayer.queryFeatures(query);
-                  const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
-                  console.log('========progressing Parcels=========',queryResult)
-                  allParcels.push(...transformedParcels);
-
-                  if (queryResult.exceededTransferLimit) {
-                    start += 3000;
-                  } else {
-                    hasMore = false;
-                  }
+                if (queryResult.exceededTransferLimit) {
+                  start += 3000;
+                } else {
+                  hasMore = false;
                 }
-                const updatedParcels = allParcels.map(parcel => ({
-                  parcelnumb: parcel.parcelnumb,
-                  usecode: parcel.usecode,
-                  zoning: parcel.zoning,
-                  zoning_description: parcel.zoning_description,
-                  zoning_type: parcel.zoning_type,
-                  zoning_subtype: parcel.zoning_subtype,
-                  yearbuilt: parcel.yearbuilt,
-                  owner: parcel.owner,
-                  owner_email: "",
-                  owner_phone: "",
-                  owner2: parcel.owner2,
-                  owner2_email: "",
-                  owner2_phone: "",
-                  address: parcel.address,
-                  scity: parcel.scity,
-                  county: parcel.county,
-                  state2: parcel.state2,
-                  szip5: parcel.szip5,
-                  legaldesc: parcel.legaldesc,
-                  lat: parcel.lat,
-                  lon: parcel.lon,
-                  gisacre: parcel.gisacre,
-                  lbcs_activity: parcel.lbcs_activity,
-                  lbcs_activity_desc: parcel.lbcs_activity_desc,
-                  lbcs_site: parcel.lbcs_site,
-                  lbcs_site_desc: parcel.lbcs_site_desc,
-                  id: parcel.id
-                }));
-                setFetchedParcels(updatedParcels)
-                setFetchParcelFlag(true)
-                return updatedParcels;
-              };
+              }
+              const filteredParcels = allParcels.filter(parcel => parcel.parcelnumb !== null)
+              const updatedParcels = filteredParcels.map(parcel => ({
+                parcelnumb: parcel.parcelnumb,
+                usecode: parcel.usecode,
+                zoning: parcel.zoning,
+                zoning_description: parcel.zoning_description,
+                zoning_type: parcel.zoning_type,
+                zoning_subtype: parcel.zoning_subtype,
+                yearbuilt: parcel.yearbuilt,
+                owner: parcel.owner,
+                owner_email: "",
+                owner_phone: "",
+                owner2: parcel.owner2,
+                owner2_email: "",
+                owner2_phone: "",
+                address: parcel.address,
+                scity: parcel.scity,
+                county: parcel.county,
+                state2: parcel.state2,
+                szip5: parcel.szip5,
+                legaldesc: parcel.legaldesc,
+                lat: parcel.lat,
+                lon: parcel.lon,
+                gisacre: parcel.gisacre,
+                lbcs_activity: parcel.lbcs_activity,
+                lbcs_activity_desc: parcel.lbcs_activity_desc,
+                lbcs_site: parcel.lbcs_site,
+                lbcs_site_desc: parcel.lbcs_site_desc,
+                id: parcel.id
+              }));
+              setFetchedParcels(updatedParcels)
+              setFetchParcelFlag(true)
+              return updatedParcels;
+            };
 
-              const query = queryParcels.createQuery();
-              query.geometry = polygon;
-              query.spatialRelationship = 'intersects';
-              query.returnGeometry = false;
-              query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
-                  "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc"];
-              // query.outFields = ["address", "owner", "parcelnumb"];
-              query.orderByFields = ["id ASC"]
-              const allParcels = await fetchAllParcels(query);
-              console.log('All parcels:', allParcels, allParcels.length);
-              // const query = queryParcels.createQuery();
-              // query.start = 0
-              // query.num = 3000;
-              // // query.where = "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'";
-              // query.geometry = polygon;
-              // query.spatialRelationship = 'intersects';
-              // query.returnGeometry = false;
-              // query.outFields = ["geoid", "address", "owner", "parcelnumb"];
-              // const queryResult = await featureLayer.queryFeatures(query);
-              // console.log('------->queryResult attributes',queryResult);
-              console.log('=================end================')
-
-              // const circleLocation = calculateCircleFromPolygon(coordinatePairs);
-              // console.log("===========circleLocation==========", circleLocation)
-              // const centerAddress = await geocodingReverse(circleLocation.center.lat, circleLocation.center.lon)
-              // const response = await axios.post('https://map-file-upload-server.vercel.app/getAllPlacesWithinCircle',{
-              // // const response = await axios.post('http://localhost:5000/getAllPlacesWithinCircle',{
-              //   circleLocation: circleLocation,
-              // })
-              // fetchAllPlacesWithinCircle(circleLocation)
-
-              // const centerPoint = new Point({
-              //   x: circleLocation.center.lon,
-              //   y: circleLocation.center.lat,
-              //   spatialReference: { wkid: 4326 } // Assuming the coordinates are in WGS84
-              // });
-              
-              // const circleGeometry = new Circle({
-              //   center: centerPoint,
-              //   radius: circleLocation.radius
-              // });
-              // const circleGraphic = new Graphic({
-              //   geometry: circleGeometry,
-              //   symbol: markerSymbol
-              // });
-              // mapView.graphics.add(circleGraphic)
-            }
+            const query = queryParcels.createQuery();
+            query.geometry = polygon;
+            query.spatialRelationship = 'intersects';
+            query.returnGeometry = false;
+            query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
+                "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc"];
+            // query.outFields = ["address", "owner", "parcelnumb"];
+            query.orderByFields = ["id ASC"]
+            const allParcels = await fetchAllParcels(query);
+            console.log('All parcels:', allParcels, allParcels.length);
+            // const query = queryParcels.createQuery();
+            // query.start = 0
+            // query.num = 3000;
+            // // query.where = "geoid = '13051' AND zoning_type = 'Residential' AND scity = 'TYBEE ISLAND'";
+            // query.geometry = polygon;
+            // query.spatialRelationship = 'intersects';
+            // query.returnGeometry = false;
+            // query.outFields = ["geoid", "address", "owner", "parcelnumb"];
+            // const queryResult = await featureLayer.queryFeatures(query);
+            // console.log('------->queryResult attributes',queryResult);
+            console.log('=================end================')
+          } catch (error) {
+            console.error('Error fetching KML data:', error);
           }
-        } catch (error) {
-          console.error('Error fetching KML data:', error);
-        }
-      };
-    
-      fetchKmlData();
+        };
+        
+        fetchParcelData();
+      }
     }
 
     const searchWidget = new Search({
@@ -728,6 +618,49 @@ export default function MapComponent() {
             const BUCKET_NAME = 'atlasproai-dashboard'
             const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${file.name}`;
             setKmlUrl(publicUrl)
+            
+            const fetchKmlData = async () => {
+              try {
+                const response = await fetch(publicUrl);
+                const kmlData = await response.text();
+                // console.log(kmlData);
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(kmlData, 'text/xml');
+
+                if(xmlDoc.getElementsByTagName('Polygon')[0]){
+                  const coordinateString = xmlDoc.getElementsByTagName('coordinates')[0].textContent;
+                  if(coordinateString){
+
+                    const coordinatePairs = coordinateString?.trim().split(' ');
+                    console.log(coordinatePairs); // You can process the KML data here
+              
+                    const rings: [number, number][] = [];
+                    // Loop through the coordinate pairs and create a ring
+                    for (const coordinatePair of coordinatePairs) {
+                      const [lon, lat] = coordinatePair.split(',');
+          
+                      // Create a point from the lon/lat values
+                      const point = new Point({
+                        longitude: parseFloat(lon),
+                        latitude: parseFloat(lat),
+                      });
+
+                      // Add the point to the ring
+                      rings.push([point.x, point.y]);
+                    }
+
+                    setPolygonRings(rings)
+                    setMapCenter(rings[0])
+                  }
+                }
+              } catch (error) {
+                setPolygonRings([])
+                setMapCenter(null)
+                console.error('Error fetching KML data:', error);
+              }
+            };
+          
+            fetchKmlData();
             // setKmlUrl('https://storage.googleapis.com/atlasproai-dashboard/Tour_de_France.kmz')
           } else {
             console.error('Error uploading file:', xhr.statusText);
@@ -744,10 +677,10 @@ export default function MapComponent() {
   };
 
   useEffect(() => {
-    if (kmlUrl) {
+    if (polygonRings) {
       mapFunction('Parcel_View');
     }
-  }, [kmlUrl]);
+  }, [polygonRings]);
 
   const handleExportCSV = () => {
     if(fetchParcelFlag){
