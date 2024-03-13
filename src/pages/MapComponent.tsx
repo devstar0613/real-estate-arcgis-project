@@ -421,9 +421,38 @@ export default function MapComponent() {
                     hasMore = false;
                   }
                 }
-                setFetchedParcels(allParcels)
+                const updatedParcels = allParcels.map(parcel => ({
+                  parcelnumb: parcel.parcelnumb,
+                  usecode: parcel.usecode,
+                  zoning: parcel.zoning,
+                  zoning_description: parcel.zoning_description,
+                  zoning_type: parcel.zoning_type,
+                  zoning_subtype: parcel.zoning_subtype,
+                  yearbuilt: parcel.yearbuilt,
+                  owner: parcel.owner,
+                  owner_email: "",
+                  owner_phone: "",
+                  owner2: parcel.owner2,
+                  owner2_email: "",
+                  owner2_phone: "",
+                  address: parcel.address,
+                  scity: parcel.scity,
+                  county: parcel.county,
+                  state2: parcel.state2,
+                  szip5: parcel.szip5,
+                  legaldesc: parcel.legaldesc,
+                  lat: parcel.lat,
+                  lon: parcel.lon,
+                  gisacre: parcel.gisacre,
+                  lbcs_activity: parcel.lbcs_activity,
+                  lbcs_activity_desc: parcel.lbcs_activity_desc,
+                  lbcs_site: parcel.lbcs_site,
+                  lbcs_site_desc: parcel.lbcs_site_desc,
+                  id: parcel.id
+                }));
+                setFetchedParcels(updatedParcels)
                 setFetchParcelFlag(true)
-                return allParcels;
+                return updatedParcels;
               };
 
               const query = queryParcels.createQuery();
