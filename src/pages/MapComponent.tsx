@@ -159,8 +159,19 @@ export default function MapComponent() {
     const trailsRendererForRegrid = {
       type: "unique-value",
       // valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
-      valueExpression: "IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'Conservation', 'yellow')))",
+      valueExpression: "IIf($feature.owner == 'CALVIN RATTERREE RENTALS LLC', 'owner', IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'conservation', 'yellow'))))",
       uniqueValueInfos: [
+        {
+          value: 'owner',
+          symbol: {
+            type: "simple-fill",
+            color: [255, 0, 0, 0.2],
+            outline: {
+              color: [255, 0, 0, 0.8],
+              width: 1
+            }
+          }
+        },
         {
           value: 'yellow',
           symbol: {
@@ -195,7 +206,7 @@ export default function MapComponent() {
           }
         },
         {
-          value: 'Conservation',
+          value: 'conservation',
           symbol: {
             type: "simple-fill",
             color: [200, 200, 200, 0.2], 
@@ -368,8 +379,13 @@ export default function MapComponent() {
                 'Land Use Code Description: Site': parcel.lbcs_site_desc
               }));
               // Sorting the updatedParcels array by Total Addresses Count from big to small
-              updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
-
+              // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
+              // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
+              updatedParcels.sort((a, b) => {
+                const ownerNameA = a['Owner Name'] || '';
+                const ownerNameB = b['Owner Name'] || '';
+                return ownerNameA.localeCompare(ownerNameB);
+              });
               setFetchedParcels(updatedParcels)
               setFetchParcelFlag(true)
               return updatedParcels;
