@@ -165,9 +165,9 @@ export default function MapComponent() {
           value: 'owner',
           symbol: {
             type: "simple-fill",
-            color: [255, 0, 0, 0.2],
+            color: [255, 0, 255, 0.2],
             outline: {
-              color: [255, 0, 0, 0.8],
+              color: [255, 0, 255, 0.8],
               width: 1
             }
           }
