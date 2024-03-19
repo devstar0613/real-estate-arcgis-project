@@ -46,8 +46,8 @@ export default function MapComponent() {
   const [avatarFlag, setAvatarFlag] = useState<any>(0);
   const [kmlUrl, setKmlUrl] = useState<string | null>(null);
   const [address, setAddress] = useState<string>('501 5th St, Tybee Island, Georgia, 31328');
-  const [selectedMap, setSelectedMap] = useState<string>('Parcel_View');
-  const [addedLayer, setAddedLayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
+  const [parcelLayer, setParcellayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
+  const [fccLayer, setFcclayer] = useState<FeatureLayer|null>(null);
   const [displayData, setDisplayData] = useState<any | null>(default_parcelInfo);
   const [fetchedParcels, setFetchedParcels] = useState<any>([])
   const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
@@ -145,81 +145,93 @@ export default function MapComponent() {
       basemap: 'hybrid',
     });
 
-    if(addedLayer != null)
-      map.remove(addedLayer);
-    let featureLayer: FeatureLayer;
+    // if(parcelLayer != null)
+    //   map.remove(parcelLayer);
+    // let featureLayer: FeatureLayer;
 
-    if(isParcelSelected){
-      const trailsRendererForRegrid = {
-        type: "unique-value",
-        // valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
-        valueExpression: "IIf($feature.owner == 'CALVIN RATTERREE RENTALS LLC', 'owner', IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'conservation', 'yellow'))))",
-        uniqueValueInfos: [
-          {
-            value: 'owner',
-            symbol: {
-              type: "simple-fill",
-              color: [255, 0, 255, 0.2],
-              outline: {
-                color: [255, 0, 255, 0.8],
-                width: 1
-              }
-            }
-          },
-          {
-            value: 'yellow',
-            symbol: {
-              type: "simple-fill",
-              color: [255, 255, 0, 0.2], // Yellow color with opacity
-              outline: {
-                color: [255, 255, 0, 0.8], // Black outline
-                width: 1
-              }
-            }
-          },
-          {
-            value: 'blue',
-            symbol: {
-              type: "simple-fill",
-              color: [0, 200, 255, 0.2], // Default color with opacity
-              outline: {
-                color: [0, 200, 255, 0.8],
-                width: 1
-              }
-            }
-          },
-          {
-            value: 'green',
-            symbol: {
-              type: "simple-fill",
-              color: [0, 255, 0, 0.2], // Green color with opacity
-              outline: {
-                color: [0, 255, 0, 0.8],
-                width: 1
-              }
-            }
-          },
-          {
-            value: 'conservation',
-            symbol: {
-              type: "simple-fill",
-              color: [200, 200, 200, 0.2], 
-              outline: {
-                color: [200, 200, 200, 0.8],
-                width: 1
-              }
+    const trailsRendererForRegrid = {
+      type: "unique-value",
+      // valueExpression: "IIf(Find('#', $feature.address) > -1 && Find('RD #', $feature.address) < 0 && Find('DR #', $feature.address) < 0, 'yellow', 'default')",
+      valueExpression: "IIf($feature.owner == 'CALVIN RATTERREE RENTALS LLC', 'owner', IIf($feature.zoning_description == null || Find('Single', $feature.zoning_description) > -1 || Find('One Family', $feature.zoning_description) > -1 || Find('Single', $feature.zoning_subtype) > -1, 'blue', IIf(Find('Business', $feature.zoning_description) > -1 || Find('Commercial', $feature.zoning_description) > -1 || Find('Industrial', $feature.zoning_description) > -1, 'green', IIf(Find('Conservation', $feature.zoning_description) > -1 || Find('Environment', $feature.zoning_description) > -1 || Find('Marsh', $feature.zoning_description) > -1 || Find('Military', $feature.zoning_description) > -1, 'conservation', 'yellow'))))",
+      uniqueValueInfos: [
+        {
+          value: 'owner',
+          symbol: {
+            type: "simple-fill",
+            color: [255, 0, 255, 0.2],
+            outline: {
+              color: [255, 0, 255, 0.8],
+              width: 1
             }
           }
-        ]
-      };
-      const parcelURL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0"
-      featureLayer = new FeatureLayer({
-        url: parcelURL,
-        // @ts-ignore
-        renderer:trailsRendererForRegrid,
-      });
-      map.add(featureLayer);
-      setAddedLayer(featureLayer);
+        },
+        {
+          value: 'yellow',
+          symbol: {
+            type: "simple-fill",
+            color: [255, 255, 0, 0.2], // Yellow color with opacity
+            outline: {
+              color: [255, 255, 0, 0.8], // Black outline
+              width: 1
+            }
+          }
+        },
+        {
+          value: 'blue',
+          symbol: {
+            type: "simple-fill",
+            color: [0, 200, 255, 0.2], // Default color with opacity
+            outline: {
+              color: [0, 200, 255, 0.8],
+              width: 1
+            }
+          }
+        },
+        {
+          value: 'green',
+          symbol: {
+            type: "simple-fill",
+            color: [0, 255, 0, 0.2], // Green color with opacity
+            outline: {
+              color: [0, 255, 0, 0.8],
+              width: 1
+            }
+          }
+        },
+        {
+          value: 'conservation',
+          symbol: {
+            type: "simple-fill",
+            color: [200, 200, 200, 0.2], 
+            outline: {
+              color: [200, 200, 200, 0.8],
+              width: 1
+            }
+          }
+        }
+      ]
+    };
+    const parcelURL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0"
+    const parcel_layer = new FeatureLayer({
+      url: parcelURL,
+      // @ts-ignore
+      renderer:trailsRendererForRegrid,
+    });
+    setParcellayer(parcel_layer);
+
+    if(isParcelSelected){
+      map.add(parcel_layer);
+    }
+
+    const fccURL = "https://services.arcgis.com/jIL9msH9OI208GCb/ArcGIS/rest/services/Speedtest_by_Ookla_Global_Fixed_and_Mobile_Network_Performance_Map_Tiles/FeatureServer/0"
+    const fcc_layer = new FeatureLayer({
+      url: fccURL,
+      opacity: 0.7
+    });
+    setFcclayer(fcc_layer);
+
+    if(isFCCSelected){
+      map.add(fcc_layer)
     }
 
     if(isElevationSelected){
@@ -234,7 +246,7 @@ export default function MapComponent() {
         opacity: 0.8
       });
       map.add(elevationLayer);
-      setAddedLayer(elevationLayer);
+      setParcellayer(elevationLayer);
     }
     // const trailsRenderer = {
     //   type: "simple",
@@ -323,7 +335,7 @@ export default function MapComponent() {
               query.start = start;
               query.num = 3000;
 
-              const queryResult = await featureLayer.queryFeatures(query);
+              const queryResult = await parcel_layer.queryFeatures(query);
               const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
               console.log('========progressing Parcels=========',queryResult)
               allParcels.push(...transformedParcels);
@@ -493,13 +505,18 @@ export default function MapComponent() {
     switch(mapType){
       case 'Parcel':
         if(isParcelSelected){
-          view.map.remove(addedLayer)
+          view.map.remove(parcelLayer)
         }else{
-          view.map.add(addedLayer)
+          view.map.add(parcelLayer)
         }
         setIsParcelSelected(prevState => !prevState);
         break;
       case 'FCC':
+        if(isFCCSelected){
+          view.map.remove(fccLayer)
+        }else{
+          view.map.add(fccLayer)
+        }
         setIsFCCSelected(prevState => !prevState);
         break;
       case 'Elevation':
