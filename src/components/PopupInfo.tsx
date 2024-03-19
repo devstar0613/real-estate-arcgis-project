@@ -292,25 +292,24 @@ const PopupInfo = ({ address }: { address: AddressCandidate | null }) => {
   ]);
 
   return (
-    <div>
-      <HomeContext.Provider
-        value={{
-          ...contextValue,
-          handleNewConversation,
-          handleCreateFolder,
-          handleDeleteFolder,
-          handleUpdateFolder,
-          handleSelectConversation,
-          handleUpdateConversation,
-        }}
+    <HomeContext.Provider
+      value={{
+        ...contextValue,
+        handleNewConversation,
+        handleCreateFolder,
+        handleDeleteFolder,
+        handleUpdateFolder,
+        handleSelectConversation,
+        handleUpdateConversation,
+      }}
+    >
+      <main
+        className={`flex flex-col text-sm text-white dark:text-white ${lightMode}`}
+        style={{flex:1, height:'70%'}}
       >
-        <main
-          className={`flex h-full flex-col text-sm text-white dark:text-white ${lightMode}`}
-        >
-          <Chat stopConversationRef={stopConversationRef} />
-        </main>
-      </HomeContext.Provider>
-    </div>
+        <Chat stopConversationRef={stopConversationRef} />
+      </main>
+    </HomeContext.Provider>
   );
 };
 

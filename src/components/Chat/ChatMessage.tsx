@@ -125,12 +125,12 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     <div
       className={`group md:px-4 ${
         message.role === 'assistant'
-          ? 'bg-light-green dark:bg-light-green'
-          : 'bg-light-green dark:bg-light-green'
+          // ? 'bg-light-green dark:bg-light-green'
+          // : 'bg-light-green dark:bg-light-green'
       }`}
       style={{ overflowWrap: 'anywhere' }}
     >
-      <div className="relative m-auto flex p-4 text-base md:max-w-2xl md:gap-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl" style={{paddingRight:'10px'}}>
+      <div className="relative flex p-2 m-auto text-base md:max-w-2xl md:gap-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl" style={{paddingRight:'10px'}}>
         <div className="min-w-[40px] text-right font-bold">
           {message.role === 'assistant' ? (
             <img 
@@ -147,10 +147,10 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
           {message.role === 'user' ? (
             <div className="flex w-full" style={{paddingRight:'15px'}}>
               {isEditing ? (
-                <div className="flex w-full flex-col">
+                <div className="flex flex-col w-full">
                   <textarea
                     ref={textareaRef}
-                    className="w-full resize-none whitespace-pre-wrap border-none bg-light-green dark:bg-light-green text-light-whit disabled:opacity-50"
+                    className="w-full whitespace-pre-wrap border-none resize-none bg-light-green dark:bg-light-green text-light-whit disabled:opacity-50"
                     value={messageContent}
                     onChange={handleInputChange}
                     onKeyDown={handlePressEnter}
@@ -166,7 +166,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                     }}
                   />
 
-                  <div className="mt-10 flex justify-center space-x-4">
+                  <div className="flex justify-center mt-10 space-x-4">
                     <button
                       className="h-[40px] rounded-md bg-blue-500 px-4 py-1 text-sm font-medium text-white enabled:hover:bg-blue-600 disabled:opacity-50"
                       onClick={handleEditMessage}
@@ -186,21 +186,21 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                   </div>
                 </div>
               ) : (
-                <div className="prose whitespace-pre-wrap dark:prose-invert flex-1">
+                <div className="flex-1 prose whitespace-pre-wrap dark:prose-invert">
                   {message.content}
                 </div>
               )}
 
               {!isEditing && (
-                <div className="md:-mr-8 ml-1 md:ml-0 flex flex-col md:flex-row gap-4 md:gap-1 items-center md:items-start justify-end md:justify-start">
+                <div className="flex flex-col items-center justify-end gap-4 ml-1 md:-mr-8 md:ml-0 md:flex-row md:gap-1 md:items-start md:justify-start">
                   <button
-                    className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="invisible text-gray-500 group-hover:visible focus:visible hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={toggleEditing}
                   >
                     <IconEdit size={20} />
                   </button>
                   <button
-                    className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="invisible text-gray-500 group-hover:visible focus:visible hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={handleDeleteMessage}
                   >
                     <IconTrash size={20} />
@@ -211,7 +211,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
           ) : (
             <div className="flex flex-row"style={{paddingRight:'15px'}}>
               <MemoizedReactMarkdown
-                className="prose dark:prose-invert flex-1"
+                className="flex-1 prose dark:prose-invert"
                 remarkPlugins={[remarkGfm]}
                 // remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeMathjax]}
@@ -219,7 +219,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                   code({ node, inline, className, children, ...props }) {
                     if (children.length) {
                       if (children[0] == '▍') {
-                        return <span className="animate-pulse cursor-default mt-1">▍</span>
+                        return <span className="mt-1 cursor-default animate-pulse">▍</span>
                       }
 
                       children[0] = (children[0] as string).replace("`▍`", "▍")
@@ -242,21 +242,21 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                   },
                   table({ children }) {
                     return (
-                      <table className="border-collapse border border-black px-3 py-1 dark:border-white">
+                      <table className="px-3 py-1 border border-collapse border-black dark:border-white">
                         {children}
                       </table>
                     );
                   },
                   th({ children }) {
                     return (
-                      <th className="break-words border border-black bg-gray-500 px-3 py-1 text-white dark:border-white">
+                      <th className="px-3 py-1 text-white break-words bg-gray-500 border border-black dark:border-white">
                         {children}
                       </th>
                     );
                   },
                   td({ children }) {
                     return (
-                      <td className="break-words border border-black px-3 py-1 dark:border-white">
+                      <td className="px-3 py-1 break-words border border-black dark:border-white">
                         {children}
                       </td>
                     );
@@ -268,7 +268,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                 }`}
               </MemoizedReactMarkdown>
 
-              <div className="md:-mr-8 ml-1 md:ml-0 flex flex-col md:flex-row gap-4 md:gap-1 items-center md:items-start justify-end md:justify-start">
+              <div className="flex flex-col items-center justify-end gap-4 ml-1 md:-mr-8 md:ml-0 md:flex-row md:gap-1 md:items-start md:justify-start">
                 {messagedCopied ? (
                   <IconCheck
                     size={20}
@@ -276,7 +276,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                   />
                 ) : (
                   <button
-                    className="invisible group-hover:visible focus:visible text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                    className="invisible text-gray-500 group-hover:visible focus:visible hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                     onClick={copyOnClick}
                   >
                     <IconCopy size={20} />

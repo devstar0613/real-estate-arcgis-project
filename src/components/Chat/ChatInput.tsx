@@ -244,7 +244,7 @@ export const ChatInput = ({
 
   return (
     <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent md:pt-2">
-      <div className="stretch mx-2 mt-4 flex flex-row gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl">
+      <div style={{marginBottom:'10px'}} className="stretch mx-2 mt-4 flex flex-row gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl">
         {messageIsStreaming && (
           <button
             className="absolute top-0 left-0 right-0 flex items-center gap-3 px-4 py-2 mx-auto mb-3 text-black bg-white border rounded w-fit border-neutral-200 hover:opacity-50 dark:border-neutral-600 dark:text-white md:mb-0 md:mt-2"
@@ -259,6 +259,7 @@ export const ChatInput = ({
           selectedConversation.messages.length > 0 && (
             <button
               className="absolute top-0 left-0 right-0 flex items-center gap-3 px-4 py-2 mx-auto mb-3 text-white bg-white border rounded w-fit border-neutral-200 hover:opacity-50 dark:border-neutral-600 md:mb-0 md:mt-2"
+              style={{color:'black'}}
               onClick={onRegenerate}
             >
               <IconRepeat size={16} /> {'Regenerate response'}
@@ -269,8 +270,9 @@ export const ChatInput = ({
 
           <textarea
             ref={textareaRef}
-            className="w-full p-0 py-2 pl-10 pr-8 m-0 text-black border-0 resize-none dark:bg-light-white md:py-3 md:pl-10"
+            className="w-full p-0 py-2 pr-8 m-0 text-black border-0 resize-none dark:bg-light-white md:py-3"
             style={{
+              paddingLeft:'15px',
               resize: 'none',
               bottom: `${textareaRef?.current?.scrollHeight}px`,
               maxHeight: '100px',

@@ -51,18 +51,26 @@
     background-color: #697171;
     color: white;
     padding: 20px;
+    margin-right: 6px;
 }
 
 .middle-bar{
     border: 2px solid;
     color: white;
+    margin-right: 6px;
+    padding: 15px;
 }
 
 .parcel-information{
+    line-height: 27px;
+    padding: 15px;
+    font-weight: 400;
+    /* height: 200px; */
     background-color: #81908e;
-    height: 100%;
+    height: calc(50% - 15px);
     overflow-y: auto;
     overflow-x: auto;
+    margin-bottom: 16px;
 }
 
 .left_bar_item{
@@ -100,4 +108,19 @@
 .left_bar_icon{
     width: 30px;
     height: 30px;
+}
+
+.chatbot_title{
+    background: white;
+    color: black;
+    border-bottom-left-radius: 0px!important;
+    border-bottom-right-radius: 0px!important;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.chatbot_panel{
+    display: flex;
+    flex-direction: column;
+    height: 50%;
 }

@@ -336,7 +336,6 @@ export default function MapComponent() {
             }
             const filteredParcels = allParcels.filter(parcel => parcel.parcelnumb !== null)
             const updatedParcels = filteredParcels.map(parcel => ({
-              id: parcel.id,
               'Parcel Number': parcel.parcelnumb,
               'Parcel Address': parcel.address,
               'Parcel Address City': parcel.scity,
@@ -765,7 +764,7 @@ export default function MapComponent() {
         </div>
       </header>
       <Splitter style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
-        <SplitterPanel className="align-items-center justify-content-center left-bar" size={17} minSize={10} style={{marginRight:'6px'}}>
+        <SplitterPanel className="align-items-center justify-content-center left-bar" size={17} minSize={10}>
           <div>
             <div className="left_bar_item" onClick={()=>changeSelectionHandler('Parcel')}>
               <div className="custom_checkbox_outside">
@@ -851,41 +850,33 @@ export default function MapComponent() {
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center middle-bar" size={25} minSize={10} style={{marginRight:'6px'}}>
-          <Splitter layout="vertical" style={{height:'100%', padding:'15px', gap:'5px'}}>
-            <SplitterPanel className="flex align-items-center justify-content-center" size={54}>
-              <div style={{width:'100%', height:'100%'}}>
-                <div className="parcel-information">
-                  <div style={{lineHeight:'27px', margin:'15px', fontWeight:'400', height:'200px'}}>
-                    <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
-                    {parcel_fields_from_regrid.map((item) => (
-                      <div key={item.field}>
-                        <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                          <div style={{ flex: '60%' }}>
-                            <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
-                          </div>
-                          <div style={{ flex: '40%' }}>
-                            {item.label === 'Zoning Code Link' ? (
-                              <span><a style={{ color: "blue" }} href={displayData[item.field]}>View</a></span>
-                            ) : (
-                              (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
-                            )}
-                          </div>
-                        </div>
-                        <hr />
-                      </div>
-                    ))}
+        <SplitterPanel className="align-items-center justify-content-center middle-bar" size={25} minSize={10}>
+          <div className="parcel-information">
+            <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
+            {parcel_fields_from_regrid.map((item) => (
+              <div key={item.field}>
+                <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                  <div style={{ flex: '60%' }}>
+                    <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                  </div>
+                  <div style={{ flex: '40%' }}>
+                    {item.label === 'Zoning Code Link' ? (
+                      <span><a style={{ color: "blue" }} href={displayData[item.field]}>View</a></span>
+                    ) : (
+                      (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
+                    )}
                   </div>
                 </div>
+                <hr />
               </div>
-            </SplitterPanel>
-            <SplitterPanel className="align-items-center justify-content-center" size={46}>
-              <div style={{background:'white', color:'black', borderBottomLeftRadius:'0px', borderBottomRightRadius:'0px', padding:'10px'}}>
-                <p style={{fontSize:'16px'}}>{address}</p>
-              </div>
-              <PopupInfo address={popupData}></PopupInfo>
-            </SplitterPanel>
-          </Splitter>
+            ))}
+          </div>
+          <div className="chatbot_panel">
+            <div className="chatbot_title">
+              <p>{address}</p>
+            </div>
+            <PopupInfo address={popupData}></PopupInfo>
+          </div>
         </SplitterPanel>
         <SplitterPanel className="align-items-center justify-content-center" size={58}>
           <div
