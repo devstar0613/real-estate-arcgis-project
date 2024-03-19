@@ -247,7 +247,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   }, [messagesEndRef]);
 
   return (
-    <div className="relative flex-1 overflow-hidden bg-light-green dark:bg-light-green">
+    <div className="relative flex-1 overflow-hidden" style={{borderTopRightRadius:'0px', borderTopLeftRadius:'0px', backgroundColor:'#81908e'}}>
       <>
         <div
           className="max-h-full overflow-x-hidden"
@@ -293,7 +293,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               </div>
             }
           <div
-            className="h-[162px] bg-light-green dark:bg-light-green"
+            className="h-[162px]"
             ref={messagesEndRef}
           />
         </div>

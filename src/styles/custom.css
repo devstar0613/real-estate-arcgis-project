@@ -18,7 +18,7 @@
     background-color: white;
     position: absolute;
     right: 33px;
-    top: 73px;
+    top: 7%;
 }
 
 .logout_button:hover {
@@ -27,4 +27,77 @@
 
 .esri-attribution{
     display: none!important;
+}
+
+.map_sub_container{
+    padding-left: 25px;
+    padding-right: 25px;
+}
+
+.p-splitter{
+    background: #00211D!important;
+}
+
+.p-splitter-gutter{
+    display: grid!important;
+    background: #00211D!important;
+}
+
+.p-splitter-gutter-handle{
+    background: #00211D!important;
+}
+
+.left-bar{
+    background-color: #697171;
+    color: white;
+    padding: 20px;
+}
+
+.middle-bar{
+    border: 2px solid;
+    color: white;
+}
+
+.parcel-information{
+    background-color: #81908e;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.left_bar_item{
+    display: flex;
+    margin-bottom: 15px;
+    width: fit-content;
+}
+
+.left_bar_item:hover{
+    cursor: pointer;
+}
+
+.custom_checkbox_outside{
+    height: 30px;
+    width: 30px;
+    background-color: #515757;
+    border-radius: 5px!important;
+    padding: 8px;
+}
+
+.custom_checkbox_inside{
+    height: 14px;
+    width: 14px;
+    background-color: white;
+    border-radius: 2px!important;
+    /* margin: 5px; */
+}
+
+.left_bar_letter{
+    margin-top: 2px;
+    font-size: 16px;
+    margin-left: 15px;
+}
+
+.left_bar_icon{
+    width: 30px;
+    height: 30px;
 }
