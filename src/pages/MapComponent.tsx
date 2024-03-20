@@ -26,7 +26,7 @@ import { Splitter, SplitterPanel } from 'primereact/splitter';
 import { Toast } from 'primereact/toast';
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import {unparse} from 'papaparse';
-import { parcel_fields_from_regrid, default_parcelInfo } from "./Data Fields";
+import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
@@ -48,18 +48,18 @@ export default function MapComponent() {
   const [address, setAddress] = useState<string>('501 5th St, Tybee Island, Georgia, 31328');
   const [parcelLayer, setParcellayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
   const [fccLayer, setFcclayer] = useState<FeatureLayer|null>(null);
-  const [displayData, setDisplayData] = useState<any | null>(default_parcelInfo);
+  const [displayData, setDisplayData] = useState<any>(default_parcelInfo);
+  const [fccData, setFccData] = useState<any>(null);
   const [fetchedParcels, setFetchedParcels] = useState<any>([])
   const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>('');
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null)
   const [polygonRings, setPolygonRings] = useState<[number, number][]>([])
-  const [visible, setVisible] = useState(false);
   const [isParcelSelected, setIsParcelSelected] = useState<boolean>(true)
   const [isFCCSelected, setIsFCCSelected] = useState<boolean>(false)
   const [isElevationSelected, setIsElevationSelected] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const isFCCSelectedRef = useRef<boolean>(false);
   const categories = [
     { name: 'Accounting', key: 'A' },
     { name: 'Marketing', key: 'M' },
@@ -79,12 +79,15 @@ export default function MapComponent() {
     setSelectedCategories(_selectedCategories);
   };
 
-  const getSelectedData = async (mapType:string, point:Point, callType:number) => {
+  const getSelectedData = async (mapType:string, point:Point) => {
     let featureLayer: FeatureLayer;
     let featureURL: string = '';
     switch(mapType){
-      case 'Parcel_View':
+      case 'Parcel_Data':
         featureURL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+        break;
+      case 'FCC_Data':
+        featureURL = "https://services.arcgis.com/jIL9msH9OI208GCb/ArcGIS/rest/services/Speedtest_by_Ookla_Global_Fixed_and_Mobile_Network_Performance_Map_Tiles/FeatureServer/0";
         break;
       case 'Income_Centroids':
         featureURL = "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/ACS_10_14_Household_Income_Distribution_Boundaries/FeatureServer/2";
@@ -107,33 +110,28 @@ export default function MapComponent() {
     console.log('------->queryResult attributes',queryResult); // Example: Display the attributes in the console
 
     const features = queryResult.features;
-    if(callType == 2){
-      if(mapType == "Parcel_View" || mapType == "Client_Data"){
-        localStorage.setItem('parcelData', JSON.stringify({}));
-      }
-      if(mapType == "Income_Boundaries"){
-        localStorage.setItem('incomeData', JSON.stringify({}));
-      }
+    if(mapType == "Parcel_Data"){
+      localStorage.setItem('parcelData', JSON.stringify({}));
+    }
+    if(mapType == "FCC_Data"){
+      localStorage.setItem('fccData', JSON.stringify({}));
     }
     if (features.length > 0) {
       const firstFeature = features[0];
       const attributes = firstFeature.attributes;
-      if(callType == 1){
+
+      if(mapType == "Parcel_Data"){
         setDisplayData(attributes);
-        setVisible(true);
-      }
-      if(callType == 2){
-        if(mapType == "Parcel_View"){
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('parcelData', JSON.stringify(attributes));
-            console.log('----->setParcelData', attributes)
-          }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('parcelData', JSON.stringify(attributes));
+          console.log('----->setParcelData', attributes)
         }
-        if(mapType == "Income_Boundaries"){
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('incomeData', JSON.stringify(attributes));
-            console.log('----->setIncomeData', attributes)
-          }
+      }
+      if(mapType == "FCC_Data"){
+        setFccData(attributes)
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('fccData', JSON.stringify(attributes));
+          console.log('----->setFCCData', attributes)
         }
       }
       return attributes;
@@ -217,6 +215,27 @@ export default function MapComponent() {
       // @ts-ignore
       renderer:trailsRendererForRegrid,
     });
+    parcel_layer.popupTemplate = {
+      title: "One Discovery",
+      content: [
+      {
+        type: "fields", // Autocasts as new FieldsContent()
+        // Autocasts as new FieldInfo[]
+        //@ts-ignore
+        fieldInfos: [
+        // {
+        //   fieldName: "TOT_POP",
+        //   label: "Total population (2023)",
+        //   format: {
+        //     digitSeparator: true
+        //   }
+        // },
+        // {
+        //   fieldName: "expression/college"
+        // }
+      ]
+      }],
+    };
     setParcellayer(parcel_layer);
 
     if(isParcelSelected){
@@ -272,14 +291,14 @@ export default function MapComponent() {
       // popupEnabled: true,
       popup: {
         dockEnabled: true,
-        dockOptions: {
-          buttonEnabled: false,
-          breakpoint: false,
-          position: 'bottom-right',
-        },
+        // dockOptions: {
+        //   buttonEnabled: false,
+        //   breakpoint: false,
+        //   position: 'bottom-right',
+        // },
         collapseEnabled: false,
         visibleElements: {
-          closeButton: false,
+          closeButton: true,
         },
         viewModel: {
           includeDefaultActions: false,
@@ -419,7 +438,7 @@ export default function MapComponent() {
           position: 'top-right',
         });
         setView(mapView);
-        mapView.popupEnabled = false;
+        mapView.popupEnabled = true;
         mapView.on('click', async (event) => {
           console.log('------------->event.mapPoint',event.mapPoint)
           try {
@@ -431,12 +450,27 @@ export default function MapComponent() {
             );
 
             setAddress(response.address)
+            setPopupData(response)
             
             if (typeof window !== 'undefined') {
               localStorage.setItem('Address', response.address);
             }
 
-            const parcelData = await getSelectedData("Parcel_View", event.mapPoint, 1);
+            console.log('lol========isFCCSelected', isFCCSelected, isFCCSelectedRef.current)
+
+            if(isFCCSelectedRef.current){
+              const fcc_Data = await getSelectedData("FCC_Data", event.mapPoint);
+              mapView.closePopup();
+              // mapView.openPopup({
+              //   title: response.address,
+              //   location: event.mapPoint,
+              //   content: fcc_Data? JSON.stringify(fcc_Data, null, 2): "No address was found for this location",
+              // });
+            }
+
+            await getSelectedData("Parcel_Data", event.mapPoint);
+            if(!isFCCSelected)
+              await getSelectedData("FCC_Data", event.mapPoint);
             // const incomeData = await getSelectedData("Income_Boundaries", event.mapPoint, 2);
 
             console.log(
@@ -455,16 +489,7 @@ export default function MapComponent() {
             //   setVisible(true);
             // }
             // await getMapPointData({address:response.address, parcelData:parcelData, incomeData:incomeData, elevation:`${elevationResult}m`})
-            setPopupData(response)
             // showPopup(event.mapPoint, response.address, mapView);
-            // mapView.openPopup({
-            //   title: response.address,
-            //   location: event.mapPoint,
-            //   content: (() => {
-            //     setPopupData(response);
-            //     return popupRoot;
-            //   })(),
-            // });
           } catch (error) {
             console.error('Error fetching address:', error);
           }
@@ -728,7 +753,11 @@ export default function MapComponent() {
   const showError = (content: string) => {
     //@ts-ignore
     toast.current.show({severity:'error', summary: 'Error', detail:content, life: 3000});
-}
+  }
+
+  useEffect(() => {
+    isFCCSelectedRef.current = isFCCSelected;
+  }, [isFCCSelected]);
 
   return (
     <section id="map-page-container" className="h-screen">
@@ -813,7 +842,7 @@ export default function MapComponent() {
                 alt="upload kml"
                 className="left_bar_icon"
               />
-              <p className="left_bar_letter">Upload KML</p>
+              <p className="left_bar_letter">Upload KML/KMZ</p>
               <input
                 type="file"
                 accept=".kml,.kmz"
@@ -882,6 +911,20 @@ export default function MapComponent() {
                     ) : (
                       (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
                     )}
+                  </div>
+                </div>
+                <hr />
+              </div>
+            ))}
+            {fccData && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px', marginTop:'25px'}}>FCC Information</p>}
+            {fccData && FCC_fields.map((item) => (
+              <div key={item.field}>
+                <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                  <div style={{ flex: '60%' }}>
+                    <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                  </div>
+                  <div style={{ flex: '40%' }}>
+                    {['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field]}
                   </div>
                 </div>
                 <hr />

@@ -257,7 +257,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 sm:max-w-[600px]">
             <div className="text-center">
               <img
-                src="https://www.dropbox.com/scl/fi/ensej1l64crnkpsmy2kbi/atlaspro-light-logo-1.png?rlkey=t18h2pq0lez222klradjj8fy9&raw=1"
+                src="SKYGATE-logo-white.png"
                 alt="Atlas Pro Intelligence Logo"
                 className="mx-auto" // Adjust the class as needed for styling
               />

@@ -294,3 +294,17 @@ export const default_parcelInfo = {
   "lbcs_ownership_desc": null,
   "id": 35061829
 }
+
+export const FCC_fields = [
+  { field: 'AvgDown',  label: 'Average Download Speed (Mbps)' },
+  { field: 'AvgLat',  label: 'Average Latency (ms)' },
+  { field: 'AvgUp',  label: 'Average Upload Speed (Mbps)' },
+  { field: 'QuadKey',  label: 'Quadtree Key' },
+  { field: 'CalQuarter',  label: 'Quarter' },
+  // { field: 'OBJECTID',  label: 'OBJECTID' },
+  { field: 'Shape__Area',  label: 'Shape__Area' },
+  { field: 'Shape__Length',  label: 'Shape__Length' },
+  { field: 'Tests',  label: 'Tests Taken' },
+  { field: 'Devices',  label: 'Unique Devices' },
+  { field: 'CalYear',  label: 'Year' }
+]
