@@ -21,12 +21,15 @@ import SimpleFillSymbol from "@arcgis/core/symbols/SimpleFillSymbol.js";
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer'
 import Polygon from "@arcgis/core/geometry/Polygon.js";
+import Draw from "@arcgis/core/views/draw/Draw"
 import { Divider } from 'primereact/divider';
 import { Splitter, SplitterPanel } from 'primereact/splitter';
 import { Toast } from 'primereact/toast';
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
+import proj4 from 'proj4';
+
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
@@ -46,7 +49,7 @@ export default function MapComponent() {
   const [avatarFlag, setAvatarFlag] = useState<any>(0);
   const [kmlUrl, setKmlUrl] = useState<string | null>(null);
   const [address, setAddress] = useState<string>('501 5th St, Tybee Island, Georgia, 31328');
-  const [parcelLayer, setParcellayer] = useState<FeatureLayer|MapImageLayer|KMLLayer|null>(null);
+  const [parcelLayer, setParcellayer] = useState<FeatureLayer|null>(null);
   const [fccLayer, setFcclayer] = useState<FeatureLayer|null>(null);
   const [displayData, setDisplayData] = useState<any>(default_parcelInfo);
   const [fccData, setFccData] = useState<any>(null);
@@ -60,24 +63,14 @@ export default function MapComponent() {
   const [isElevationSelected, setIsElevationSelected] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isFCCSelectedRef = useRef<boolean>(false);
-  const categories = [
-    { name: 'Accounting', key: 'A' },
-    { name: 'Marketing', key: 'M' },
-    { name: 'Production', key: 'P' },
-    { name: 'Research', key: 'R' }
-  ];
-  const [selectedCategories, setSelectedCategories] = useState([categories[1]]);
-
-  const onCategoryChange = (e:any) => {
-    let _selectedCategories = [...selectedCategories];
-
-    if (e.checked)
-        _selectedCategories.push(e.value);
-    else
-        _selectedCategories = _selectedCategories.filter(category => category.key !== e.value.key);
-
-    setSelectedCategories(_selectedCategories);
-  };
+  
+  const polygonSymbol = new SimpleFillSymbol({
+    color: [100, 0, 0, 0.1],
+    outline: {
+      color: [255, 0, 0],
+      width: 1,
+    },
+  });
 
   const getSelectedData = async (mapType:string, point:Point) => {
     let featureLayer: FeatureLayer;
@@ -142,10 +135,6 @@ export default function MapComponent() {
     const map = new Map({
       basemap: 'hybrid',
     });
-
-    // if(parcelLayer != null)
-    //   map.remove(parcelLayer);
-    // let featureLayer: FeatureLayer;
 
     const trailsRendererForRegrid = {
       type: "unique-value",
@@ -217,23 +206,10 @@ export default function MapComponent() {
     });
     parcel_layer.popupTemplate = {
       title: "One Discovery",
-      content: [
-      {
-        type: "fields", // Autocasts as new FieldsContent()
-        // Autocasts as new FieldInfo[]
+      content: [{
+        type: "fields",
         //@ts-ignore
-        fieldInfos: [
-        // {
-        //   fieldName: "TOT_POP",
-        //   label: "Total population (2023)",
-        //   format: {
-        //     digitSeparator: true
-        //   }
-        // },
-        // {
-        //   fieldName: "expression/college"
-        // }
-      ]
+        fieldInfos: []
       }],
     };
     setParcellayer(parcel_layer);
@@ -265,7 +241,7 @@ export default function MapComponent() {
         opacity: 0.8
       });
       map.add(elevationLayer);
-      setParcellayer(elevationLayer);
+      // setParcellayer(elevationLayer);
     }
     // const trailsRenderer = {
     //   type: "simple",
@@ -306,6 +282,59 @@ export default function MapComponent() {
       },
     });
 
+    document.getElementById('drawPolygonBtn')?.addEventListener('click', () => {
+      const draw = new Draw({
+        view: mapView
+      });
+
+      let action = draw.create("polygon");
+      action.on("vertex-add", (evt) => {
+        createPolygonGraphic(evt.vertices);
+      });
+      action.on("vertex-remove", (evt) => {
+        createPolygonGraphic(evt.vertices);
+      });
+    
+      // Fires when the pointer moves over the view
+      action.on("cursor-update", (evt) => {
+        createPolygonGraphic(evt.vertices);
+      });
+    
+      // Add a graphic representing the completed polygon
+      // when user double-clicks on the view or presses the "Enter" key
+      action.on("draw-complete", (evt) => {
+        createPolygonGraphic(evt.vertices, true);
+      });
+    });
+
+    function createPolygonGraphic(vertices:[number, number][], isCompleted?:boolean){
+      mapView.graphics.removeAll();
+      let polygon = {
+        type: "polygon", // autocasts as Polygon
+        rings: vertices,
+        spatialReference: mapView.spatialReference
+      };
+
+      let graphic = new Graphic({
+        geometry: polygon,
+        symbol: polygonSymbol
+      });
+      mapView.graphics.add(graphic);
+      if(isCompleted){
+        const webMercator = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs';
+        const decimalDegrees = '+proj=longlat +datum=WGS84 +no_defs';
+        console.log('=====vertices======', vertices)
+        const ringsLatLng = vertices.map(xy => {
+          let lnglat = proj4(webMercator, decimalDegrees, [xy[0], xy[1]]);
+          return [lnglat[0], lnglat[1]];
+        });
+        ringsLatLng.push(ringsLatLng[0])
+        console.log('=====ringsLatLng======', ringsLatLng)
+        //@ts-ignore
+        setPolygonRings(ringsLatLng)
+      }
+    }
+
     if(kmlUrl){
       console.log('kmlUrl==============', kmlUrl)
       const kmlLayer = new KMLLayer({
@@ -316,115 +345,7 @@ export default function MapComponent() {
     }
 
     if(polygonRings.length){
-      const polygon = new Polygon({
-        hasZ: true,
-        hasM: true,
-        rings: [polygonRings],
-        spatialReference: { wkid: 4326 }
-      });
-
-      const markerSymbol = new SimpleFillSymbol({
-        color: [100, 0, 0, 0.1],
-        outline: {
-          color: [255, 0, 0],
-          width: 1,
-        },
-      });
-
-      const polygonGraphic = new Graphic({
-        geometry: polygon,
-        symbol: markerSymbol
-      });
-      mapView.graphics.add(polygonGraphic)
-      const fetchParcelData = async () => {
-        try {
-          console.log('=================start================')
-          let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
-
-          const queryParcels = new FeatureLayer({
-            url: queryUrl
-          });
-          const fetchAllParcels = async (query:any) => {
-            setFetchParcelFlag(false)
-            const allParcels = [];
-            let hasMore = true;
-            let start = 0;
-
-            while (hasMore) {
-              query.start = start;
-              query.num = 3000;
-
-              const queryResult = await parcel_layer.queryFeatures(query);
-              const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
-              console.log('========progressing Parcels=========',queryResult)
-              allParcels.push(...transformedParcels);
-
-              if (queryResult.exceededTransferLimit) {
-                start += 3000;
-              } else {
-                hasMore = false;
-              }
-            }
-            const filteredParcels = allParcels.filter(parcel => parcel.parcelnumb !== null)
-            const updatedParcels = filteredParcels.map(parcel => ({
-              'Parcel Number': parcel.parcelnumb,
-              'Parcel Address': parcel.address,
-              'Parcel Address City': parcel.scity,
-              'Parcel Address County': parcel.county,
-              'Parcel Address State': parcel.state2,
-              '5 Digit Parcel Zip Code': parcel.szip5,
-              'Owner Name': parcel.owner,
-              'Owner Email': "",
-              'Owner Phone': "",
-              'Second Owner Name': parcel.owner2,
-              'Second Owner Email': "",
-              'Second Owner Phone': "",
-              'Total Addresses Count': parcel.ll_address_count,
-              'Latitude': parcel.lat,
-              'Longitude': parcel.lon,
-              'Parcel Use Code': parcel.usecode,
-              'Zoning Code': parcel.zoning,
-              'Zoning Description': parcel.zoning_description,
-              'Zoning Type': parcel.zoning_type,
-              'Zoning Subtype': parcel.zoning_subtype,
-              'Structure Year Built': parcel.yearbuilt,
-              'Legal Description': parcel.legaldesc,
-              'County-Provided Acres': parcel.gisacre,
-              'Land Use Code: Activity': parcel.lbcs_activity,
-              'Land Use Code Description: Activity': parcel.lbcs_activity_desc,
-              'Land Use Code: Site': parcel.lbcs_site,
-              'Land Use Code Description: Site': parcel.lbcs_site_desc
-            }));
-            // Sorting the updatedParcels array by Total Addresses Count from big to small
-            // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
-            // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
-            updatedParcels.sort((a, b) => {
-              const ownerNameA = a['Owner Name'] || '';
-              const ownerNameB = b['Owner Name'] || '';
-              return ownerNameA.localeCompare(ownerNameB);
-            });
-            setFetchedParcels(updatedParcels)
-            setFetchParcelFlag(true)
-            return updatedParcels;
-          };
-
-          const query = queryParcels.createQuery();
-          query.geometry = polygon;
-          query.spatialRelationship = 'intersects';
-          query.returnGeometry = false;
-          query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
-              "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc", "ll_address_count"];
-          // query.outFields = ["address", "owner", "parcelnumb"];
-          query.orderByFields = ["id ASC"]
-          const allParcels = await fetchAllParcels(query);
-          console.log('All parcels:', allParcels, allParcels.length);
-          console.log('=================end================')
-        } catch (error) {
-          console.error('Error fetching KML data:', error);
-        }
-      };
       
-      fetchParcelData();
     }
 
     const searchWidget = new Search({
@@ -456,22 +377,11 @@ export default function MapComponent() {
               localStorage.setItem('Address', response.address);
             }
 
-            console.log('lol========isFCCSelected', isFCCSelected, isFCCSelectedRef.current)
-
-            if(isFCCSelectedRef.current){
-              const fcc_Data = await getSelectedData("FCC_Data", event.mapPoint);
-              mapView.closePopup();
-              // mapView.openPopup({
-              //   title: response.address,
-              //   location: event.mapPoint,
-              //   content: fcc_Data? JSON.stringify(fcc_Data, null, 2): "No address was found for this location",
-              // });
-            }
-
             await getSelectedData("Parcel_Data", event.mapPoint);
-            if(!isFCCSelected)
-              await getSelectedData("FCC_Data", event.mapPoint);
-            // const incomeData = await getSelectedData("Income_Boundaries", event.mapPoint, 2);
+            await getSelectedData("FCC_Data", event.mapPoint);
+
+            // if(!isFCCSelectedRef.current)
+            //   await getSelectedData("FCC_Data", event.mapPoint);
 
             console.log(
               '🚀 ~ file: MapComponent.tsx:240 ~ mapView.on ~ response:',
@@ -677,15 +587,8 @@ export default function MapComponent() {
                       rings.push([point.x, point.y]);
                     }
 
-                    const polygon_center = rings.reduce((acc, curr) => {
-                      return { lon: acc.lon + curr[0] / rings.length, lat: acc.lat + curr[1] / rings.length };
-                    }, { lon: 0, lat: 0 });
-
-                    console.log(polygon_center)
                     console.log("=========rings=====",rings)
-
                     setPolygonRings(rings)
-                    setMapCenter([polygon_center.lon, polygon_center.lat])
                   }
                 }
               } catch (error) {
@@ -713,8 +616,117 @@ export default function MapComponent() {
   };
 
   useEffect(() => {
-    if (polygonRings.length) {
-      mapFunction();
+    if(view && polygonRings.length && parcelLayer){
+      const polygon_center = polygonRings.reduce((acc, curr) => {
+        return { lon: acc.lon + curr[0] / polygonRings.length, lat: acc.lat + curr[1] / polygonRings.length };
+      }, { lon: 0, lat: 0 });
+
+      setMapCenter([polygon_center.lon, polygon_center.lat])
+      view.graphics.removeAll();
+      
+      const polygon = new Polygon({
+        hasZ: true,
+        hasM: true,
+        rings: [polygonRings],
+        spatialReference: { wkid: 4326 }
+      });
+
+      const polygonGraphic = new Graphic({
+        geometry: polygon,
+        symbol: polygonSymbol
+      });
+      view.graphics.add(polygonGraphic)
+      view.center= [polygon_center.lon, polygon_center.lat]
+      // view.zoom= 15
+      
+      const fetchParcelData = async () => {
+        try {
+          console.log('=================start================')
+          let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/0";
+
+          const queryParcels = new FeatureLayer({
+            url: queryUrl
+          });
+          const fetchAllParcels = async (query:any) => {
+            setFetchParcelFlag(false)
+            const allParcels = [];
+            let hasMore = true;
+            let start = 0;
+
+            while (hasMore) {
+              query.start = start;
+              query.num = 3000;
+
+              const queryResult = await queryParcels.queryFeatures(query);
+              const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
+              console.log('========progressing Parcels=========',queryResult)
+              allParcels.push(...transformedParcels);
+
+              if (queryResult.exceededTransferLimit) {
+                start += 3000;
+              } else {
+                hasMore = false;
+              }
+            }
+            const filteredParcels = allParcels.filter(parcel => parcel.parcelnumb !== null)
+            const updatedParcels = filteredParcels.map(parcel => ({
+              'Parcel Number': parcel.parcelnumb,
+              'Parcel Address': parcel.address,
+              'Parcel Address City': parcel.scity,
+              'Parcel Address County': parcel.county,
+              'Parcel Address State': parcel.state2,
+              '5 Digit Parcel Zip Code': parcel.szip5,
+              'Owner Name': parcel.owner,
+              'Owner Email': "",
+              'Owner Phone': "",
+              'Second Owner Name': parcel.owner2,
+              'Second Owner Email': "",
+              'Second Owner Phone': "",
+              'Total Addresses Count': parcel.ll_address_count,
+              'Latitude': parcel.lat,
+              'Longitude': parcel.lon,
+              'Parcel Use Code': parcel.usecode,
+              'Zoning Code': parcel.zoning,
+              'Zoning Description': parcel.zoning_description,
+              'Zoning Type': parcel.zoning_type,
+              'Zoning Subtype': parcel.zoning_subtype,
+              'Structure Year Built': parcel.yearbuilt,
+              'Legal Description': parcel.legaldesc,
+              'County-Provided Acres': parcel.gisacre,
+              'Land Use Code: Activity': parcel.lbcs_activity,
+              'Land Use Code Description: Activity': parcel.lbcs_activity_desc,
+              'Land Use Code: Site': parcel.lbcs_site,
+              'Land Use Code Description: Site': parcel.lbcs_site_desc
+            }));
+            // Sorting the updatedParcels array by Total Addresses Count from big to small
+            // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
+            // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
+            updatedParcels.sort((a, b) => {
+              const ownerNameA = a['Owner Name'] || '';
+              const ownerNameB = b['Owner Name'] || '';
+              return ownerNameA.localeCompare(ownerNameB);
+            });
+            setFetchedParcels(updatedParcels)
+            setFetchParcelFlag(true)
+            return updatedParcels;
+          };
+
+          const query = queryParcels.createQuery();
+          query.geometry = polygon;
+          query.spatialRelationship = 'intersects';
+          query.returnGeometry = false;
+          query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
+              "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc", "ll_address_count"];
+          // query.outFields = ["address", "owner", "parcelnumb"];
+          query.orderByFields = ["id ASC"]
+          const allParcels = await fetchAllParcels(query);
+          console.log('All parcels:', allParcels, allParcels.length);
+          console.log('=================end================')
+        } catch (error) {
+          console.error('Error fetching Parcel data:', error);
+        }
+      };
+      fetchParcelData();
     }
   }, [polygonRings]);
 
@@ -851,7 +863,7 @@ export default function MapComponent() {
                 onChange={handleFileUpload}
               />
             </div>
-            <div className="left_bar_item">
+            <div className="left_bar_item" id="drawPolygonBtn">
               <img
                 src="draw.png"
                 alt="draw polygon"
