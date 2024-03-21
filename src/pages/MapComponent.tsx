@@ -936,12 +936,19 @@ export default function MapComponent() {
                     <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
                   </div>
                   <div style={{ flex: '40%' }}>
-                    {['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field]}
+                    {item.field=='Existing Provider'? (fccData['AvgDown']<1000? 'Cable': 'Fiber'): 
+                    (['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field])}
                   </div>
                 </div>
                 <hr />
               </div>
             ))}
+            {/* {fccData && 
+              <div style={{paddingTop:'15px'}}>
+                <p>Existing Provider: Cable (if under 1000 mbps)</p>
+                <p>Existing Provider: Fiber (if above 1000 mbps)</p>
+              </div>
+            } */}
           </div>
           <div className="chatbot_panel">
             <div className="chatbot_title">

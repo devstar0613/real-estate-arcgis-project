@@ -306,5 +306,6 @@ export const FCC_fields = [
   { field: 'Shape__Length',  label: 'Shape__Length' },
   { field: 'Tests',  label: 'Tests Taken' },
   { field: 'Devices',  label: 'Unique Devices' },
-  { field: 'CalYear',  label: 'Year' }
+  { field: 'CalYear',  label: 'Year' },
+  { field: 'Existing Provider',  label: 'Existing Provider' }
 ]
