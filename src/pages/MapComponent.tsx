@@ -29,7 +29,7 @@ import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
 import proj4 from 'proj4';
-
+import { v4 as uuidv4 } from 'uuid';
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
@@ -527,10 +527,11 @@ export default function MapComponent() {
       const file = event.target.files[0];
 
       if (file) {
+        const uniqueId = uuidv4();
         setFileName(file.name.split('.')[0]);
         const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
           params:{
-            file: file.name,
+            file: uniqueId + file.name,
             // type: file.type
             type: 'application/octet-stream'
           }
@@ -554,22 +555,23 @@ export default function MapComponent() {
           if (xhr.status === 200) {
             showSuccess('File uploaded successfully')
             const BUCKET_NAME = 'atlasproai-dashboard'
-            const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${file.name}`;
+            const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${uniqueId + file.name}`;
             setKmlUrl(publicUrl)
             
             const fetchKmlData = async () => {
               try {
                 const response = await fetch(publicUrl);
                 const kmlData = await response.text();
-                // console.log(kmlData);
+                console.log(kmlData);
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(kmlData, 'text/xml');
+                console.log('=======xmlDoc=======', xmlDoc)
 
                 if(xmlDoc.getElementsByTagName('Polygon')[0]){
                   const coordinateString = xmlDoc.getElementsByTagName('coordinates')[0].textContent;
                   if(coordinateString){
 
-                    const coordinatePairs = coordinateString?.trim().split(' ');
+                    const coordinatePairs = coordinateString?.trim().split(/\s+/);
                     console.log(coordinatePairs); // You can process the KML data here
               
                     const rings: [number, number][] = [];
@@ -747,6 +749,36 @@ export default function MapComponent() {
     }
   }
 
+  const handleExportPolygon = () => {
+    if(polygonRings.length){
+      const kmlContent = `
+        <?xml version="1.0" encoding="UTF-8"?>
+        <kml xmlns="http://www.opengis.net/kml/2.2">
+          <Placemark>
+            <Polygon>
+              <outerBoundaryIs>
+                <LinearRing>
+                  <coordinates>
+                    ${polygonRings.map(([lng, lat]) => `${lng},${lat}`).join('\n')}
+                  </coordinates>
+                </LinearRing>
+              </outerBoundaryIs>
+            </Polygon>
+          </Placemark>
+        </kml>
+      `.trim();
+  
+      const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'polygon.kml';
+      a.click();
+    }else{
+      showInfo('Please draw polygon on the map.')
+    }
+  }
+
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -871,6 +903,14 @@ export default function MapComponent() {
               />
               <p className="left_bar_letter">Draw Polygon</p>
             </div>
+            <div className="left_bar_item" onClick={handleExportPolygon}>
+              <img
+                src="export_kml.png"
+                alt="export kml"
+                className="left_bar_icon"
+              />
+              <p className="left_bar_letter">Export KML</p>
+            </div>
             <div className="left_bar_item" onClick={handleExportCSV}>
               <img
                 src="export_addresses.png"
@@ -943,12 +983,6 @@ export default function MapComponent() {
                 <hr />
               </div>
             ))}
-            {/* {fccData && 
-              <div style={{paddingTop:'15px'}}>
-                <p>Existing Provider: Cable (if under 1000 mbps)</p>
-                <p>Existing Provider: Fiber (if above 1000 mbps)</p>
-              </div>
-            } */}
           </div>
           <div className="chatbot_panel">
             <div className="chatbot_title">
