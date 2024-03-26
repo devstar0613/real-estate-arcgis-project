@@ -75,8 +75,14 @@
 
 .left_bar_item{
     display: flex;
-    margin-bottom: 15px;
-    width: fit-content;
+    margin-bottom: 5px;
+    width: 200px;
+    padding: 5px;
+    /* width: fit-content; */
+}
+
+.left_bar_item:hover{
+    background-color: grey;
 }
 
 .left_bar_item:hover{
