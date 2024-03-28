@@ -726,6 +726,9 @@ export default function MapComponent() {
         // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
         url: kmlUrl,
       });
+      kmlLayer.load().then(() => {
+        view.goTo(kmlLayer.fullExtent);
+      });
       view.map.add(kmlLayer);
     }
   },[kmlUrl])
