@@ -335,19 +335,6 @@ export default function MapComponent() {
       }
     }
 
-    if(kmlUrl){
-      console.log('kmlUrl==============', kmlUrl)
-      const kmlLayer = new KMLLayer({
-        // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
-        url: kmlUrl,
-      });
-      map.add(kmlLayer);
-    }
-
-    if(polygonRings.length){
-      
-    }
-
     const searchWidget = new Search({
       view: mapView,
       container: 'searchWidget',
@@ -732,6 +719,17 @@ export default function MapComponent() {
     }
   }, [polygonRings]);
 
+  useEffect(() => {
+    if(view && kmlUrl){
+      console.log('kmlUrl==============', kmlUrl)
+      const kmlLayer = new KMLLayer({
+        // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
+        url: kmlUrl,
+      });
+      view.map.add(kmlLayer);
+    }
+  },[kmlUrl])
+
   const handleExportCSV = () => {
     if(fetchParcelFlag){
       const csv = unparse(fetchedParcels);
@@ -810,7 +808,7 @@ export default function MapComponent() {
         style={{ height: '10%' }}
       >
         <div className="flex items-center">
-          <a href="#">
+          <a href="/">
             <img
               // src="https://www.dropbox.com/scl/fi/ensej1l64crnkpsmy2kbi/atlaspro-light-logo-1.png?rlkey=t18h2pq0lez222klradjj8fy9&raw=1"
               src="atlaspro_logo.png"
