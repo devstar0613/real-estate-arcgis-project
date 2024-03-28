@@ -625,7 +625,8 @@ export default function MapComponent() {
         symbol: polygonSymbol
       });
       view.graphics.add(polygonGraphic)
-      view.center= [polygon_center.lon, polygon_center.lat]
+      view.goTo(polygonGraphic.geometry);
+      // view.center= [polygon_center.lon, polygon_center.lat]
       // view.zoom= 15
       
       const fetchParcelData = async () => {
