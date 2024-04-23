@@ -255,9 +255,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           onScroll={handleScroll}
         >
           <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 sm:max-w-[600px]">
-            <div className="text-center" style={{margin:'8%', marginTop:'16%'}}>
+            <div className="text-center" style={{margin:'14%', marginTop:'40px', marginBottom:'10px'}}>
               <img
-                src="skygate_logo.png"
+                src="atlaspro_logo.png"
                 alt="Atlas Pro Intelligence Logo"
                 className="mx-auto" // Adjust the class as needed for styling
               />
@@ -293,7 +293,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               </div>
             }
           <div
-            className="h-[162px]"
+            className="h-[140px]"
             ref={messagesEndRef}
           />
         </div>
