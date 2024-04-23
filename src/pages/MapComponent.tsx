@@ -22,10 +22,11 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import MapImageLayer from '@arcgis/core/layers/MapImageLayer'
 import Polygon from "@arcgis/core/geometry/Polygon.js";
 import Draw from "@arcgis/core/views/draw/Draw"
+import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
+import esriConfig from "@arcgis/core/config.js";
 import { Divider } from 'primereact/divider';
 import { Splitter, SplitterPanel } from 'primereact/splitter';
 import { Toast } from 'primereact/toast';
-import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
 import proj4 from 'proj4';
@@ -42,6 +43,7 @@ export default function MapComponent() {
       },
     });
   };
+  esriConfig.apiKey="AAPKa89f15d6371c4d1b9847721a967562ba43EXsN5-VaBN2W0eTXMa9bejZqyaSsUcMADdNxr4egpLTeesDx6puGoYUbecx32j"
 
   const mapDiv = useRef<HTMLDivElement>(null);
   const [popupData, setPopupData] = useState<AddressCandidate | null>(null);
