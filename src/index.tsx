@@ -58,8 +58,8 @@ const root = ReactDOM.createRoot(
 root.render(
   <Provider store={store}>
     <Auth0Provider
-      domain={'atlaspro.us.auth0.com'}
-      clientId={'gsr3SHFQkpxa42M9t3bthJv9gq45qQSD'}
+      domain={'atlasproai.us.auth0.com'}
+      clientId={'20KCLj9G1l6u2tT6nRqjeEFTydZRAOTL'}
       authorizationParams={{
         redirect_uri: window.location.origin + '/callback',
       }}

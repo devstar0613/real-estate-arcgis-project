@@ -24,8 +24,8 @@ function App() {
   return (
     <Router>
       <Switch>
-        <Route path="/" component={MapComponent} />
-        {/* <Route path="/" component={ProtectedComponent} /> */}
+        {/* <Route path="/" component={MapComponent} /> */}
+        <Route path="/" component={ProtectedComponent} />
         <Route path="/callback" component={CallbackComponent} />
         <Route path='/login' component={LoginPage}/>
       </Switch>
