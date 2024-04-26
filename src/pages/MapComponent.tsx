@@ -789,6 +789,55 @@ export default function MapComponent() {
     }
   };
 
+  const handleRunAIAgent = () => {
+    const fetchKmlData = async () => {
+      try {
+        const url = 'https://storage.googleapis.com/atlasproai-dashboard/run_ai_agent/Right_Section_Roads.kml'
+        const response = await fetch(url);
+        showSuccess('Successfully processed!')
+        const kmlData = await response.text();
+        console.log(kmlData);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(kmlData, 'text/xml');
+        console.log('=======xmlDoc=======', xmlDoc)
+
+        if(xmlDoc.getElementsByTagName('Polygon')[0]){
+          const coordinateString = xmlDoc.getElementsByTagName('coordinates')[0].textContent;
+          if(coordinateString){
+
+            const coordinatePairs = coordinateString?.trim().split(/\s+/);
+            console.log(coordinatePairs); // You can process the KML data here
+
+            const rings: [number, number][] = [];
+            // Loop through the coordinate pairs and create a ring
+            for (const coordinatePair of coordinatePairs) {
+              const [lon, lat] = coordinatePair.split(',');
+  
+              // Create a point from the lon/lat values
+              const point = new Point({
+                longitude: parseFloat(lon),
+                latitude: parseFloat(lat),
+              });
+
+              // Add the point to the ring
+              rings.push([point.x, point.y]);
+            }
+
+            console.log("=========rings=====",rings)
+            setPolygonRings(rings)
+          }
+        }
+      } catch (error) {
+        setPolygonRings([])
+        setMapCenter(null)
+        showError('Sorry, something went wrong!')
+        console.error("Error fetching KML data for 'Run AI Agent'", error);
+      }
+    };
+  
+    fetchKmlData();
+  }
+
   const toast = useRef(null);
   const showSuccess = (content: string) => {
     //@ts-ignore
@@ -934,7 +983,7 @@ export default function MapComponent() {
             <hr style={{marginBottom:'15px'}}/>
           </div>
           <div>
-            <div className="left_bar_item">
+            <div className="left_bar_item" onClick={handleRunAIAgent}>
               <img
                 src="ai_agent.png"
                 alt="run ai agent"
