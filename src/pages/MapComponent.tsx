@@ -215,13 +215,13 @@ export default function MapComponent() {
       }],
     };
     setParcellayer(parcel_layer);
-    const secondary_URL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/3"
-    const secondary_layer = new FeatureLayer({
-      url: secondary_URL,
-      // @ts-ignore
-      // renderer:trailsRendererForRegrid,
-    });
-    map.add(secondary_layer)
+    // const secondary_URL = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/3"
+    // const secondary_layer = new FeatureLayer({
+    //   url: secondary_URL,
+    //   // @ts-ignore
+    //   // renderer:trailsRendererForRegrid,
+    // });
+    // map.add(secondary_layer)
 
     if(isParcelSelected){
       map.add(parcel_layer);
