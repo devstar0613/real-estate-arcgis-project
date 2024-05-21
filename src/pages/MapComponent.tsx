@@ -56,7 +56,9 @@ export default function MapComponent() {
   const [displayData, setDisplayData] = useState<any>(default_parcelInfo);
   const [fccData, setFccData] = useState<any>(null);
   const [fetchedParcels, setFetchedParcels] = useState<any>([])
+  const [fetchedSecondaryAddresses, setFetchedSecondaryAddresses] = useState<any>([])
   const [fetchParcelFlag, setFetchParcelFlag] = useState<boolean>(false);
+  const [fetchSecondaryAddressesFlag, setFetchSecondaryAddressesFlag] = useState<boolean>(false);
   const [fileName, setFileName] = useState<string>('');
   const [mapCenter, setMapCenter] = useState<[number, number] | null>(null)
   const [polygonRings, setPolygonRings] = useState<[number, number][]>([])
@@ -695,7 +697,8 @@ export default function MapComponent() {
               'Land Use Code: Activity': parcel.lbcs_activity,
               'Land Use Code Description: Activity': parcel.lbcs_activity_desc,
               'Land Use Code: Site': parcel.lbcs_site,
-              'Land Use Code Description: Site': parcel.lbcs_site_desc
+              'Land Use Code Description: Site': parcel.lbcs_site_desc,
+              'Parcel UUID': parcel.ll_uuid
             }));
             // Sorting the updatedParcels array by Total Addresses Count from big to small
             // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
@@ -715,7 +718,7 @@ export default function MapComponent() {
           query.spatialRelationship = 'intersects';
           query.returnGeometry = false;
           query.outFields = ["address", "parcelnumb", "scity", "county", "state2", "szip5", "owner", "owner2", "lat", "lon", "usecode", "zoning", "zoning_description",
-              "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc", "ll_address_count"];
+              "zoning_type", "zoning_subtype", "yearbuilt", "legaldesc", "gisacre", "lbcs_activity", "lbcs_activity_desc", "lbcs_site", "lbcs_site_desc", "ll_address_count", "ll_uuid"];
           // query.outFields = ["address", "owner", "parcelnumb"];
           query.orderByFields = ["id ASC"]
           const allParcels = await fetchAllParcels(query);
@@ -726,6 +729,65 @@ export default function MapComponent() {
         }
       };
       fetchParcelData();
+
+      const fetchSecondaryAddressesData = async () => {
+        try {
+          console.log('=================start================')
+          let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/3";
+
+          const queryParcels = new FeatureLayer({
+            url: queryUrl
+          });
+          const fetchAllSecondaryAddresses = async (query:any) => {
+            setFetchParcelFlag(false)
+            const allAddresses = [];
+            let hasMore = true;
+            let start = 0;
+
+            while (hasMore) {
+              query.start = start;
+              query.num = 3000;
+
+              const queryResult = await queryParcels.queryFeatures(query);
+              const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
+              console.log('========progressing Parcels=========',queryResult)
+              allAddresses.push(...transformedParcels);
+
+              if (queryResult.exceededTransferLimit) {
+                start += 3000;
+              } else {
+                hasMore = false;
+              }
+            }
+            // Sorting the updatedParcels array by Total Addresses Count from big to small
+            // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
+            // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
+            // allAddresses.sort((a, b) => {
+            //   const ownerNameA = a['Owner Name'] || '';
+            //   const ownerNameB = b['Owner Name'] || '';
+            //   return ownerNameA.localeCompare(ownerNameB);
+            // });
+            // setFetchedParcels(allAddresses)
+            // setFetchParcelFlag(true)
+            setFetchedSecondaryAddresses(allAddresses)
+            setFetchSecondaryAddressesFlag(true)
+            return allAddresses;
+          };
+
+          const query = queryParcels.createQuery();
+          query.geometry = polygon;
+          query.spatialRelationship = 'intersects';
+          query.returnGeometry = false;
+          query.outFields = ["*"];
+          query.orderByFields = ["id ASC"]
+          const allAddresses = await fetchAllSecondaryAddresses(query);
+          console.log('All parcels:', allAddresses, allAddresses.length);
+          console.log('=================end================')
+        } catch (error) {
+          console.error('Error fetching Parcel data:', error);
+        }
+      };
+      fetchSecondaryAddressesData();
     }
   }, [polygonRings]);
 
@@ -744,7 +806,7 @@ export default function MapComponent() {
   },[kmlUrl])
 
   const handleExportCSV = () => {
-    if(fetchParcelFlag){
+    if(fetchParcelFlag && fetchSecondaryAddressesFlag){
       const csv = unparse(fetchedParcels);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -755,6 +817,15 @@ export default function MapComponent() {
       link.click();
       document.body.removeChild(link);
       // console.log("=============fetchedParcels=============",fetchedParcels)
+      const csv1 = unparse(fetchedSecondaryAddresses);
+      const blob1 = new Blob([csv1], { type: 'text/csv;charset=utf-8;' });
+      const url1 = URL.createObjectURL(blob1);
+      const link1 = document.createElement('a');
+      link1.setAttribute('href', url1);
+      link1.setAttribute('download', `secondary_addresses_within_${fileName}.csv`);
+      document.body.appendChild(link1);
+      link1.click();
+      document.body.removeChild(link1);
     }else {
       showInfo('Please upload polygon file or wait for processing!')
     }
@@ -990,6 +1061,14 @@ export default function MapComponent() {
             <hr style={{marginBottom:'15px'}}/>
           </div>
           <div>
+            <div className="left_bar_item">
+              <img
+                src="white_network.png"
+                alt="view my assets"
+                className="left_bar_icon"
+              />
+              <p className="left_bar_letter">View My Assets</p>
+            </div>
             <div className="left_bar_item" onClick={handleRunAIAgent}>
               <img
                 src="ai_agent.png"
