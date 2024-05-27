@@ -1,11 +1,18 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PopupInfo from '../components/PopupInfo';
 import PopupPortal from '../components/PopupPortal';
 import { getMapPointData } from '../actions/getMapPointDataAction';
 import '../styles/globals.css';
 import '../styles/custom.css';
+import 'primeicons/primeicons.css';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import { Divider } from 'primereact/divider';
+import { Menu } from 'primereact/menu';
+import { Splitter, SplitterPanel } from 'primereact/splitter';
+import { Toast } from 'primereact/toast';
 import axios from 'axios';
 import Graphic from '@arcgis/core/Graphic';
 import Map from '@arcgis/core/Map';
@@ -24,31 +31,22 @@ import Polygon from "@arcgis/core/geometry/Polygon.js";
 import Draw from "@arcgis/core/views/draw/Draw"
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import esriConfig from "@arcgis/core/config.js";
-import { Divider } from 'primereact/divider';
-import { Splitter, SplitterPanel } from 'primereact/splitter';
-import { Toast } from 'primereact/toast';
+import UI from "@arcgis/core/views/ui/UI.js";
 import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
 import proj4 from 'proj4';
 import { v4 as uuidv4 } from 'uuid';
+import useIndexDB from "../hooks/useIndexDB";
+import Header from "../components/Header";
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
-  const { logout } = useAuth0();
-
-  const handleLogout = () => {
-    logout({
-      logoutParams: {
-        returnTo: 'https://www.atlaspro.ai',
-      },
-    });
-  };
   esriConfig.apiKey="AAPKa89f15d6371c4d1b9847721a967562ba43EXsN5-VaBN2W0eTXMa9bejZqyaSsUcMADdNxr4egpLTeesDx6puGoYUbecx32j"
 
+  const [data, setData, removeData] = useIndexDB<any[]>('parcels', []);
   const mapDiv = useRef<HTMLDivElement>(null);
   const [popupData, setPopupData] = useState<AddressCandidate | null>(null);
   const [view, setView] = useState<any>(null);
-  const [avatarFlag, setAvatarFlag] = useState<any>(0);
   const [kmlUrl, setKmlUrl] = useState<string | null>(null);
   const [address, setAddress] = useState<string>('501 5th St, Tybee Island, Georgia, 31328');
   const [parcelLayer, setParcellayer] = useState<FeatureLayer|null>(null);
@@ -67,6 +65,26 @@ export default function MapComponent() {
   const [isElevationSelected, setIsElevationSelected] = useState<boolean>(false)
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isFCCSelectedRef = useRef<boolean>(false);
+  const menuLeft = useRef<any>(null);
+  const [showTable, setShowTable] = useState(false);
+  let items = [
+    {
+        label: 'Home View',
+        icon: 'pi pi-home',
+        command: () => {
+          setShowTable(false);
+            // toast.current.show({ severity: 'success', summary: 'Success', detail: 'File created', life: 3000 });
+        }
+    },
+    {
+        label: 'Table View',
+        icon: 'pi pi-table',
+        command: () => {
+          setShowTable(true);
+          // toast.current.show({ severity: 'warn', summary: 'Search Completed', detail: 'No results found', life: 3000 });
+        }
+    }
+  ];
   
   const polygonSymbol = new SimpleFillSymbol({
     color: [100, 0, 0, 0.1],
@@ -107,24 +125,24 @@ export default function MapComponent() {
     console.log('------->queryResult attributes',queryResult); // Example: Display the attributes in the console
 
     const features = queryResult.features;
-    if(mapType == "Parcel_Data"){
+    if(mapType === "Parcel_Data"){
       localStorage.setItem('parcelData', JSON.stringify({}));
     }
-    if(mapType == "FCC_Data"){
+    if(mapType === "FCC_Data"){
       localStorage.setItem('fccData', JSON.stringify({}));
     }
     if (features.length > 0) {
       const firstFeature = features[0];
       const attributes = firstFeature.attributes;
 
-      if(mapType == "Parcel_Data"){
+      if(mapType === "Parcel_Data"){
         setDisplayData(attributes);
         if (typeof window !== 'undefined') {
           localStorage.setItem('parcelData', JSON.stringify(attributes));
           console.log('----->setParcelData', attributes)
         }
       }
-      if(mapType == "FCC_Data"){
+      if(mapType === "FCC_Data"){
         setFccData(attributes)
         if (typeof window !== 'undefined') {
           localStorage.setItem('fccData', JSON.stringify(attributes));
@@ -356,6 +374,10 @@ export default function MapComponent() {
         mapView.ui.add(searchWidget, {
           position: 'top-right',
         });
+        mapView.ui.move('zoom', {
+          position: 'bottom-right'
+        })
+        mapView.ui.add(document.getElementById("customTextDiv") as HTMLElement, "top-left");
         setView(mapView);
         mapView.popupEnabled = true;
         mapView.on('click', async (event) => {
@@ -417,23 +439,6 @@ export default function MapComponent() {
     }
   }, [view]);
   
-  useEffect(() => {
-    const handleDocumentClick = (event: MouseEvent) => {
-      const dropdown = document.querySelector('.avatar_dropdown');
-      const avatar = document.querySelector('.avatar_image');
-
-      if (avatar && dropdown && !avatar.contains(event.target as Node) && !dropdown.contains(event.target as Node)) {
-        setAvatarFlag(0);
-      }
-    };
-
-    document.addEventListener('click', handleDocumentClick);
-
-    return () => {
-      document.removeEventListener('click', handleDocumentClick);
-    };
-  }, []);
-
   const changeSelectionHandler = (mapType:string) => {
     switch(mapType){
       case 'Parcel':
@@ -458,11 +463,6 @@ export default function MapComponent() {
     }
     console.log('---------->mapType',mapType)
   }
-
-  const handleAvatarClick = () => {
-    setAvatarFlag((prevFlag: number) => (prevFlag === 0 ? 1 : 0));
-  };
-  // console.log('🚀 ~ file: MapComponent.tsx:240 ~ showPopup ~ view:', view);
 
   const showPopup = (point: Point, address: string, mapView: MapView) => {
     console.log(
@@ -709,6 +709,7 @@ export default function MapComponent() {
               return ownerNameA.localeCompare(ownerNameB);
             });
             setFetchedParcels(updatedParcels)
+            setData(updatedParcels)
             setFetchParcelFlag(true)
             return updatedParcels;
           };
@@ -936,56 +937,9 @@ export default function MapComponent() {
 
   return (
     <section id="map-page-container" className="h-screen">
-      <header
-        className="flex items-center justify-between map_sub_container bg-light-green"
-        style={{ height: '10%' }}
-      >
-        <div className="flex items-center">
-          <a href="/">
-            <img
-              // src="https://www.dropbox.com/scl/fi/ensej1l64crnkpsmy2kbi/atlaspro-light-logo-1.png?rlkey=t18h2pq0lez222klradjj8fy9&raw=1"
-              src="atlaspro_logo.png"
-              alt="Atlas Pro Intelligence Logo"
-              className="mx-auto" // Adjust the class as needed for styling
-              width="100%"
-              style={{ maxWidth: '130px' }}
-            />
-          </a>
-        </div>
-        <div className="flex items-center">
-          {/* <a href={`https://app.atlaspro.ai/${localStorage.getItem('Address')}`} style={{marginLeft:'10px',marginRight:'10px'}}>
-            <img
-              src="wand.png"
-              alt="Magical Wand Image"
-              className="mx-auto" // Adjust the class as needed for styling
-              width="40px"
-              // style={{ maxWidth: '150px' }}
-            />
-          </a> */}
-          <div style={{cursor:'pointer'}}>
-            <img
-              // src="https://www.dropbox.com/scl/fi/0tssi4mzfom6e3y7p0n0f/Pngtree-user-icon_4479727.png?rlkey=b7q7n33exi2m4b7jkmdh4bf6m&raw=1"
-              src="settings.png"
-              alt="Atlas Pro Intelligence Logo"
-              className="mx-auto avatar_image" // Adjust the class as needed for styling
-              width="30px"
-              onClick={handleAvatarClick}
-            />
-            {avatarFlag == 1 &&
-              <div className="avatar_dropdown">
-                <p className="logout_button" style={{marginLeft:'20px', marginTop:'5px'}} onClick={handleLogout}>Log out</p> 
-              </div>}
-          </div>
-          {/* <button
-            className="items-center gap-3 p-3 text-white transition-colors duration-200 rounded-md cursor-pointer select-none hover:text-white/30"
-            onClick={handleLogout}
-          >
-            Logout
-          </button> */}
-        </div>
-      </header>
+      <Header />
       <Splitter style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
-        <SplitterPanel className="align-items-center justify-content-center left-bar" size={17} minSize={10}>
+        <SplitterPanel className="align-items-center justify-content-center left-bar" style={{display: !showTable? 'block': 'none'}} size={17} minSize={10}>
           <div>
             <div className="left_bar_item" onClick={()=>changeSelectionHandler('Parcel')}>
               <div className="custom_checkbox_outside">
@@ -1087,7 +1041,7 @@ export default function MapComponent() {
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center middle-bar" size={25} minSize={10}>
+        <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: !showTable? 'block': 'none'}} size={25} minSize={10}>
           <div className="parcel-information">
             <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
             {parcel_fields_from_regrid.map((item) => (
@@ -1115,7 +1069,7 @@ export default function MapComponent() {
                     <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
                   </div>
                   <div style={{ flex: '40%' }}>
-                    {item.field=='Existing Provider'? (fccData['AvgDown']<1000? 'Cable': 'Fiber'): 
+                    {item.field==='Existing Provider'? (fccData['AvgDown']<1000? 'Cable': 'Fiber'): 
                     (['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field])}
                   </div>
                 </div>
@@ -1139,10 +1093,66 @@ export default function MapComponent() {
               overflow: 'hidden',
             }}
           >
+            <div className="flex card justify-content-center" style={{boxShadow:'0 0 0 !important'}} id="customTextDiv">
+              <Menu model={items} popup ref={menuLeft} id="popup_menu_left"style={{marginTop:'5px'}} />
+              <i className="menu-button pi pi-bars" onClick={(event) => {menuLeft.current.toggle(event)}} aria-controls="popup_menu_left" aria-haspopup />
+            </div>
             {/* <PopupPortal mountNode={popupRoot}>
               <PopupInfo address={popupData}></PopupInfo>
             </PopupPortal> */}
             {/* <pre>{JSON.stringify(displayData, null, 2)}</pre> */}
+          </div>
+        </SplitterPanel>
+        <SplitterPanel className="align-items-center justify-content-center table-bar" style={{display: showTable? 'block': 'none'}} size={42} minSize={10}>
+          {/* <DataTable value={fetchedParcels} scrollable stripedRows tableStyle={{ minWidth: '40%', fontSize:'0.8rem' }}>
+            <Column field="Parcel Number" header="Parcel ID"></Column>
+            <Column field="Parcel Address" header="Address"></Column>
+            <Column field="Owner Name" header="Owner"></Column>
+            <Column field="Owner Email" header="Email"></Column>
+            <Column field="Owner Phone" header="Phone Number"></Column>
+            <Column field="Land Use Code: Activity" header="Land Use Code"></Column>
+            <Column field="Land Use Code Description: Activity" header="Land Use Description"></Column>
+          </DataTable> */}
+          <div style={{textAlign: 'right'}}>
+            <a href='/table' target="_blank">
+              <i className="pi pi-external-link" style={{cursor: 'pointer'}} onClick={() => {}} aria-controls="popup_menu_left" />
+            </a>
+          </div>
+          <table style={{fontSize: '1rem'}}>
+            <thead>
+              <tr>
+                <th>Parcel ID</th>
+                <th>Address</th>
+                <th>Owner</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Land Use Code</th>
+                <th>Land Use Description</th>
+              </tr>
+            </thead>
+            <tr>
+              <td colSpan={7}>
+                <hr style={{marginTop: '12px', marginBottom: '12px'}}/>
+              </td>
+            </tr>
+            <tbody>
+              {fetchedParcels.length> 0 ?
+               fetchedParcels.slice(0,4).map((parcel:any, index:any)=> (
+                <tr key={index}>
+                  <td className="limited-text">{parcel['Parcel Number']}</td>
+                  <td className="limited-text">{parcel['Parcel Address']}</td>
+                  <td className="limited-text">{parcel['Owner Name']}</td>
+                  <td className="limited-text">{parcel['Owner Email']}</td>
+                  <td className="limited-text">{parcel['Owner Phone']}</td>
+                  <td className="limited-text">{parcel['Land Use Code: Activity']}</td>
+                  <td className="limited-text">{parcel['Land Use Code Description: Activity']}</td>
+                </tr>
+              )): <tr><td colSpan={7}>No data</td></tr>}
+            </tbody>
+          </table>
+          <div style={{textAlign: 'center', marginTop: '20vh', fontSize: '1.2rem'}}>
+            <p>This area is to display csv file in table</p>
+            <p>format based on polygon selected.</p>
           </div>
         </SplitterPanel>
       </Splitter>

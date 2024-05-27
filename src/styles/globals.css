@@ -57,7 +57,8 @@ pre:has(div.codeblock) {
     .esri-building-phase-picker__arrow-left,
     .esri-building-phase-picker__arrow-right,
     .esri-building-level-picker__arrow-up,
-    .esri-building-level-picker__arrow-down
+    .esri-building-level-picker__arrow-down,
+    .pi
   ) {
   font-family: 'Figtree', sans-serif !important;
 }
@@ -66,7 +67,8 @@ pre:has(div.codeblock) {
   padding: 0px;
 }
 
-#map-page-container * :not(header, img) {
+/* #map-page-container * :not(header, img, table, th, tr, tbody, td, .p-paginator, .p-datatable-wrapper) { */
+  #map-page-container * :not(header, img, table, th, tr, tbody, td) {
   border-radius: 10px;
 }
 

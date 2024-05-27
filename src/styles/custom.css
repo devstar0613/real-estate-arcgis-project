@@ -138,3 +138,55 @@
 .esri-popup--aligned-top-center, .esri-popup--aligned-top-left, .esri-popup--aligned-top-right{
     display: none!important;
 }
+
+.table-bar{
+    background-color: #133a35;
+    color: white;
+    padding: 20px;
+    margin-left: 6px;
+}
+
+.menu-button{
+    font-family: primeicons!important;
+    color: white;
+    cursor: pointer;
+    font-size: 2rem;
+}
+
+.esri-component{
+    box-shadow: 0 0 0!important;
+}
+
+.p-datatable-scrollable, .p-datatable-wrapper{
+    height: 100%;
+}
+
+th, td{
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.limited-text {
+    max-width: 100px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.table-page-text {
+    /* max-width: 100px; */
+    /* white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; */
+    color: white;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.table-page{
+    padding: 10px;
+    font-size: 1rem;
+    color: white;
+}
