@@ -67,22 +67,32 @@ export default function MapComponent() {
   const isFCCSelectedRef = useRef<boolean>(false);
   const menuLeft = useRef<any>(null);
   const [showTable, setShowTable] = useState(false);
+  const [showLeftMenu, setShowLeftMenu] = useState(true);
   let items = [
     {
-        label: 'Home View',
-        icon: 'pi pi-home',
-        command: () => {
-          setShowTable(false);
-            // toast.current.show({ severity: 'success', summary: 'Success', detail: 'File created', life: 3000 });
-        }
+      label: 'Home View',
+      icon: 'pi pi-home',
+      command: () => {
+        setShowTable(false);
+        setShowLeftMenu(true)
+          // toast.current.show({ severity: 'success', summary: 'Success', detail: 'File created', life: 3000 });
+      }
     },
     {
-        label: 'Table View',
-        icon: 'pi pi-table',
-        command: () => {
-          setShowTable(true);
-          // toast.current.show({ severity: 'warn', summary: 'Search Completed', detail: 'No results found', life: 3000 });
-        }
+      label: 'Full Map View',
+      icon: 'pi pi-map',
+      command: () => {
+        setShowTable(false);
+        setShowLeftMenu(false);
+      }
+    },
+    {
+      label: 'Table View',
+      icon: 'pi pi-table',
+      command: () => {
+        setShowTable(true);
+        setShowLeftMenu(false);
+      }
     }
   ];
   
@@ -939,7 +949,7 @@ export default function MapComponent() {
     <section id="map-page-container" className="h-screen">
       <Header />
       <Splitter style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
-        <SplitterPanel className="align-items-center justify-content-center left-bar" style={{display: !showTable? 'block': 'none'}} size={17} minSize={10}>
+        <SplitterPanel className="align-items-center justify-content-center left-bar" style={{display: showLeftMenu? 'block': 'none'}} size={17} minSize={10}>
           <div>
             <div className="left_bar_item" onClick={()=>changeSelectionHandler('Parcel')}>
               <div className="custom_checkbox_outside">
@@ -1041,7 +1051,7 @@ export default function MapComponent() {
             </div>
           </div>
         </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: !showTable? 'block': 'none'}} size={25} minSize={10}>
+        <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: showLeftMenu? 'block': 'none'}} size={25} minSize={10}>
           <div className="parcel-information">
             <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
             {parcel_fields_from_regrid.map((item) => (
