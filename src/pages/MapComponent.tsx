@@ -714,8 +714,8 @@ export default function MapComponent() {
             // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
             // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
             updatedParcels.sort((a, b) => {
-              const ownerNameA = a['Owner Name'] || '';
-              const ownerNameB = b['Owner Name'] || '';
+              const ownerNameA = a['Parcel Address'] || '';
+              const ownerNameB = b['Parcel Address'] || '';
               return ownerNameA.localeCompare(ownerNameB);
             });
             setFetchedParcels(updatedParcels)
@@ -741,83 +741,83 @@ export default function MapComponent() {
       };
       fetchParcelData();
 
-      const fetchSecondaryAddressesData = async () => {
-        try {
-          console.log('=================start================')
-          let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/3";
+      // const fetchSecondaryAddressesData = async () => {
+      //   try {
+      //     console.log('=================start================')
+      //     let queryUrl = "https://fs.regrid.com/UMikI7rWkdcPyLwSrqTgKqLQa7minA8uC2aiydrYCyMJmZRVwc0Qq2QSDNtexkZp/rest/services/premium/FeatureServer/3";
 
-          const queryParcels = new FeatureLayer({
-            url: queryUrl
-          });
-          const fetchAllSecondaryAddresses = async (query:any) => {
-            setFetchParcelFlag(false)
-            const allAddresses = [];
-            let hasMore = true;
-            let start = 0;
+      //     const queryParcels = new FeatureLayer({
+      //       url: queryUrl
+      //     });
+      //     const fetchAllSecondaryAddresses = async (query:any) => {
+      //       setFetchParcelFlag(false)
+      //       const allAddresses = [];
+      //       let hasMore = true;
+      //       let start = 0;
 
-            while (hasMore) {
-              query.start = start;
-              query.num = 3000;
+      //       while (hasMore) {
+      //         query.start = start;
+      //         query.num = 3000;
 
-              const queryResult = await queryParcels.queryFeatures(query);
-              const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
-              console.log('========progressing Parcels=========',queryResult)
-              allAddresses.push(...transformedParcels);
+      //         const queryResult = await queryParcels.queryFeatures(query);
+      //         const transformedParcels = queryResult.features.map(parcel => parcel.attributes)
+      //         console.log('========progressing Parcels=========',queryResult)
+      //         allAddresses.push(...transformedParcels);
 
-              if (queryResult.exceededTransferLimit) {
-                start += 3000;
-              } else {
-                hasMore = false;
-              }
-            }
-            // Sorting the updatedParcels array by Total Addresses Count from big to small
-            // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
-            // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
-            // allAddresses.sort((a, b) => {
-            //   const ownerNameA = a['Owner Name'] || '';
-            //   const ownerNameB = b['Owner Name'] || '';
-            //   return ownerNameA.localeCompare(ownerNameB);
-            // });
-            // setFetchedParcels(allAddresses)
-            // setFetchParcelFlag(true)
-            setFetchedSecondaryAddresses(allAddresses)
-            setFetchSecondaryAddressesFlag(true)
-            return allAddresses;
-          };
+      //         if (queryResult.exceededTransferLimit) {
+      //           start += 3000;
+      //         } else {
+      //           hasMore = false;
+      //         }
+      //       }
+      //       // Sorting the updatedParcels array by Total Addresses Count from big to small
+      //       // updatedParcels.sort((a, b) => b['Total Addresses Count'] - a['Total Addresses Count']);
+      //       // updatedParcels.sort((a, b) => a['Owner Name'].localeCompare(b['Owner Name']));
+      //       // allAddresses.sort((a, b) => {
+      //       //   const ownerNameA = a['Owner Name'] || '';
+      //       //   const ownerNameB = b['Owner Name'] || '';
+      //       //   return ownerNameA.localeCompare(ownerNameB);
+      //       // });
+      //       // setFetchedParcels(allAddresses)
+      //       // setFetchParcelFlag(true)
+      //       setFetchedSecondaryAddresses(allAddresses)
+      //       setFetchSecondaryAddressesFlag(true)
+      //       return allAddresses;
+      //     };
 
-          const query = queryParcels.createQuery();
-          query.geometry = polygon;
-          query.spatialRelationship = 'intersects';
-          query.returnGeometry = false;
-          query.outFields = ["*"];
-          query.orderByFields = ["id ASC"]
-          const allAddresses = await fetchAllSecondaryAddresses(query);
-          console.log('All parcels:', allAddresses, allAddresses.length);
-          console.log('=================end================')
-        } catch (error) {
-          console.error('Error fetching Parcel data:', error);
-        }
-      };
-      fetchSecondaryAddressesData();
+      //     const query = queryParcels.createQuery();
+      //     query.geometry = polygon;
+      //     query.spatialRelationship = 'intersects';
+      //     query.returnGeometry = false;
+      //     query.outFields = ["*"];
+      //     query.orderByFields = ["id ASC"]
+      //     const allAddresses = await fetchAllSecondaryAddresses(query);
+      //     console.log('All parcels:', allAddresses, allAddresses.length);
+      //     console.log('=================end================')
+      //   } catch (error) {
+      //     console.error('Error fetching Parcel data:', error);
+      //   }
+      // };
+      // fetchSecondaryAddressesData();
     }
   }, [polygonRings]);
 
-  useEffect(() => {
-    if(view && kmlUrl){
-      console.log('kmlUrl==============', kmlUrl)
-      const kmlLayer = new KMLLayer({
-        // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
-        url: kmlUrl,
-      });
-      kmlLayer.load().then(() => {
-        view.goTo(kmlLayer.fullExtent);
-      });
-      view.map.add(kmlLayer);
-    }
-  },[kmlUrl])
+  // useEffect(() => {
+  //   if(view && kmlUrl){
+  //     console.log('kmlUrl==============', kmlUrl)
+  //     const kmlLayer = new KMLLayer({
+  //       // url: "https://storage.googleapis.com/atlasproai-dashboard/tybee_island.kml",
+  //       url: kmlUrl,
+  //     });
+  //     kmlLayer.load().then(() => {
+  //       view.goTo(kmlLayer.fullExtent);
+  //     });
+  //     view.map.add(kmlLayer);
+  //   }
+  // },[kmlUrl])
 
   const handleExportCSV = () => {
-    if(fetchParcelFlag && fetchSecondaryAddressesFlag){
+    if(fetchParcelFlag){
       const csv = unparse(fetchedParcels);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -828,15 +828,15 @@ export default function MapComponent() {
       link.click();
       document.body.removeChild(link);
       // console.log("=============fetchedParcels=============",fetchedParcels)
-      const csv1 = unparse(fetchedSecondaryAddresses);
-      const blob1 = new Blob([csv1], { type: 'text/csv;charset=utf-8;' });
-      const url1 = URL.createObjectURL(blob1);
-      const link1 = document.createElement('a');
-      link1.setAttribute('href', url1);
-      link1.setAttribute('download', `secondary_addresses_within_${fileName}.csv`);
-      document.body.appendChild(link1);
-      link1.click();
-      document.body.removeChild(link1);
+      // const csv1 = unparse(fetchedSecondaryAddresses);
+      // const blob1 = new Blob([csv1], { type: 'text/csv;charset=utf-8;' });
+      // const url1 = URL.createObjectURL(blob1);
+      // const link1 = document.createElement('a');
+      // link1.setAttribute('href', url1);
+      // link1.setAttribute('download', `secondary_addresses_within_${fileName}.csv`);
+      // document.body.appendChild(link1);
+      // link1.click();
+      // document.body.removeChild(link1);
     }else {
       showInfo('Please upload polygon file or wait for processing!')
     }
