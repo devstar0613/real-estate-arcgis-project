@@ -927,6 +927,28 @@ export default function MapComponent() {
     fetchKmlData();
   }
 
+  const handleViewMyAssets = async () => {
+    const fiber_url = "https://services.arcgis.com/3vStCH7NDoBOZ5zn/arcgis/rest/services/Fiber_Optic_Cable/FeatureServer/0";
+    const featureLayer = new FeatureLayer({
+      url: fiber_url,
+    });
+
+    await view.map.add(featureLayer);
+    console.log('======here is view my assets=========');
+
+    // Wait for the feature layer to load before calling goTo()
+    await featureLayer.when();
+
+    // Get the full extent of the feature layer
+    const fullExtent = featureLayer.fullExtent;
+
+    if (fullExtent) {
+      view.goTo(fullExtent);
+    } else {
+      console.error('Could not get the full extent of the feature layer.');
+    }
+  }
+
   const toast = useRef(null);
   const showSuccess = (content: string) => {
     //@ts-ignore
@@ -1025,7 +1047,7 @@ export default function MapComponent() {
             <hr style={{marginBottom:'15px'}}/>
           </div>
           <div>
-            <div className="left_bar_item">
+            <div className="left_bar_item" onClick={handleViewMyAssets}>
               <img
                 src="white_network.png"
                 alt="view my assets"
