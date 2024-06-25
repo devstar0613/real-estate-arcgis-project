@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useAuth0 } from "@auth0/auth0-react";
 import PopupInfo from '../components/PopupInfo';
 import PopupPortal from '../components/PopupPortal';
 import { getMapPointData } from '../actions/getMapPointDataAction';
@@ -38,11 +39,16 @@ import proj4 from 'proj4';
 import { v4 as uuidv4 } from 'uuid';
 import useIndexDB from "../hooks/useIndexDB";
 import Header from "../components/Header";
+import MyDropzone from "../components/MyDropzone/MyDropzone";
+import { Dialog } from 'primereact/dialog';
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from 'primereact/inputtextarea';
+import { Checkbox } from "primereact/checkbox";
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
   esriConfig.apiKey="AAPKa89f15d6371c4d1b9847721a967562ba43EXsN5-VaBN2W0eTXMa9bejZqyaSsUcMADdNxr4egpLTeesDx6puGoYUbecx32j"
-
+  const { user, isAuthenticated } = useAuth0();
   const [data, setData, removeData] = useIndexDB<any[]>('parcels', []);
   const mapDiv = useRef<HTMLDivElement>(null);
   const [popupData, setPopupData] = useState<AddressCandidate | null>(null);
@@ -68,6 +74,17 @@ export default function MapComponent() {
   const menuLeft = useRef<any>(null);
   const [showTable, setShowTable] = useState(false);
   const [showLeftMenu, setShowLeftMenu] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null)
+  const [job_title, setJob_title] = useState('');
+  const [job_instruction, setJob_instruction] = useState('');
+  const [checked, setChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(()=>{
+    console.log('======user information========', user)
+  }, [user])
+  
   let items = [
     {
       label: 'Home View',
@@ -878,6 +895,80 @@ export default function MapComponent() {
     }
   };
 
+  const handleJobRequest = async () => {
+    console.log('=====selectedFiles:======', selectedFiles)
+    if(!job_title || !job_instruction || !checked)
+      return showInfo('Please complete the form.')
+    if(!selectedFiles)
+      return showInfo('Please upload kml/kmz files.')
+    if(selectedFiles){
+      try{
+        setIsLoading(true);
+        let kml_urls: any = [];
+        for(let i=0; i< selectedFiles.length; i++){
+          let uniqueId = uuidv4();
+          let file= selectedFiles[i]
+          setFileName(file.name.split('.')[0]);
+          const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
+            params:{
+              file: uniqueId + file.name,
+              // type: file.type
+              type: file.type || 'application/octet-stream'
+            }
+          })
+          const signedUrl = response.data
+    
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', signedUrl, true);
+          // xhr.setRequestHeader('Content-Type', file.type); // Set this to match the actual file type
+          xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+          xhr.upload.onprogress = (e: ProgressEvent) => {
+            if (e.lengthComputable) {
+              const progress = (e.loaded / e.total) * 100;
+              console.log(progress);
+            }
+          };
+          
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+            } else {
+              showError('Error uploading file')
+              console.error('Error uploading file:', xhr.statusText);
+            }
+          };
+
+          xhr.onerror = function () {
+            console.error('XHR onerror event');
+          };
+  
+          xhr.send(file);
+          const BUCKET_NAME = 'atlasproai-dashboard'
+          const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${uniqueId + file.name}`;
+          kml_urls.push(publicUrl)
+        }
+        const newJobRequest = await axios.post('https://map-file-upload-server.vercel.app/new_job', {email: user?.name, username: user?.email, auth0_sub: user?.sub, job_title, job_instruction, kml_urls: kml_urls}) as any;
+
+        if(newJobRequest.data.success){
+          showSuccess('Your job request was sent correctly!')
+          setJob_title('')
+          setJob_instruction('')
+          setChecked(false)
+          setSelectedFiles(null)
+          setTimeout(() => {
+            setVisible(false);
+          }, 3000);
+        }
+      }catch(error) {
+        showError('An error occurred processing job request');
+        console.error('Error during file upload:', error);
+      }finally{
+        setIsLoading(false)
+      }
+    }else{
+      showInfo('Please upload kml/kmz files.')
+    }
+  }
+
   const handleRunAIAgent = () => {
     const fetchKmlData = async () => {
       try {
@@ -1047,6 +1138,14 @@ export default function MapComponent() {
             <hr style={{marginBottom:'15px'}}/>
           </div>
           <div>
+            <div className="left_bar_item" onClick={()=> {setVisible(true);}}>
+              <img
+                src="katapult_icon.png"
+                alt="view my assets"
+                className="left_bar_icon"
+              />
+              <p className="left_bar_letter">Job Request</p>
+            </div>
             <div className="left_bar_item" onClick={handleViewMyAssets}>
               <img
                 src="white_network.png"
@@ -1189,6 +1288,32 @@ export default function MapComponent() {
         </SplitterPanel>
       </Splitter>
       <Toast ref={toast} />
+      <Dialog header="Job Request to KatapultPro" visible={visible} style={{ width: '500px', background: '#00211D' }} onHide={() => {if (!visible) return; setVisible(false); }}>
+        <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
+          <label htmlFor="api">KatapultPro Job Title</label>
+          <InputText value={job_title} style={{color: 'black'}} onChange={(e) => setJob_title(e.target.value)} id="api" aria-describedby="api-help" />
+        </div>
+        <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
+          <label htmlFor="job_instruction">Job Instruction</label>
+          <InputTextarea value={job_instruction} style={{color: 'black'}} onChange={(e) => setJob_instruction(e.target.value)} rows={3} cols={50} />
+        </div>
+        <div>
+          <p>Please upload any relevant polygons / KML Files:</p>
+          <MyDropzone {...{setSelectedFiles}} {...{selectedFiles}} />
+        </div>
+        <div className="flex align-items-center" style={{marginTop: '15px'}}>
+          <Checkbox inputId="ingredient1" name="pizza" value="Cheese" onChange={e=> setChecked(e?.checked!)} checked={checked} />
+          <label htmlFor="ingredient1" className="ml-2">I have revised the job request accuracy laid out above.</label>
+        </div>
+        <div style={{marginTop: '10px'}}>
+          <p style={{fontSize: '12px'}}>
+            Note: Please provide a guest account access to your KatapultPro and email us an API key with writing permission at contact@atlaspro.ai prior to submitting a job request.
+          </p>
+        </div>
+        <div style={{float: 'right', marginTop: '20px'}}>
+          <Button loading={isLoading} label="Submit" onClick={handleJobRequest} />
+        </div>
+      </Dialog>
     </section>
   );
 }

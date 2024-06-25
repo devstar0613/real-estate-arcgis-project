@@ -10,6 +10,7 @@ import store from './store';
 import { Auth0Provider } from '@auth0/auth0-react';
 // import { useNavigate } from "react-router-dom";
 // import { BrowserRouter,  } from 'react-router-dom';
+import { PrimeReactProvider } from "primereact/api";
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -65,7 +66,9 @@ root.render(
       }}
     //  redirectUri={window.location.origin + '/callback'}
     >
-      <App />
+      <PrimeReactProvider>
+        <App />
+      </PrimeReactProvider>
     </Auth0Provider>
   </Provider>,
   // document.getElementById('root'),
