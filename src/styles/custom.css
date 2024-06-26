@@ -157,8 +157,13 @@
     box-shadow: 0 0 0!important;
 }
 
-.p-datatable-scrollable, .p-datatable-wrapper{
-    height: 100%;
+/* .p-datatable-scrollable, .p-datatable-wrapper{
+  height: 100%;
+} */
+
+.p-datatable-wrapper{
+  border-bottom-left-radius: 0px!important;
+  border-bottom-right-radius: 0px!important;
 }
 
 th, td{
@@ -276,13 +281,63 @@ th, td{
   color: #ffffff;
   background: #1861f2;
   border: 1px solid #1861f2;
-  padding: 0.75rem 1.25rem;
+  padding: 0.5rem 1.25rem;
   font-size: 1rem;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
   border-radius: 6px;
 }
 
-.p-dialog-header, .p-dialog-content{
-    background: #00211D!important;
-    color: white;
+.p-dialog-header, .p-dialog-content, .p-dialog-footer{
+  background: #00211D!important;
+  color: white;
+}
+
+.p-button.p-button-danger, .p-button-group.p-button-danger > .p-button, .p-splitbutton.p-button-danger > .p-button, .p-fileupload-choose.p-button-danger{
+  /* color: #ffffff; */
+  background: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.p-dropdown-label{
+  width: 40px;
+  align-content: center;
+}
+
+.p-datatable{
+  padding-bottom: 15px;
+}
+
+.p-button.p-button-success, .p-button-group.p-button-success > .p-button, .p-splitbutton.p-button-success > .p-button, .p-fileupload-choose.p-button-success{
+  color: #ffffff;
+  background: #22c55e;
+  border: 1px solid #22c55e;
+}
+
+.p-button.p-button-warning, .p-button-group.p-button-warning > .p-button, .p-splitbutton.p-button-warning > .p-button, .p-fileupload-choose.p-button-warning {
+  color: #ffffff;
+  background: #f97316;
+  border: 1px solid #f97316;
+}
+
+.p-button.p-button-info, .p-button-group.p-button-info > .p-button, .p-splitbutton.p-button-info > .p-button, .p-fileupload-choose.p-button-info {
+  color: #ffffff;
+  background: #0ea5e9;
+  border: 1px solid #0ea5e9;
+}
+
+.p-button.p-button-secondary, .p-button-group.p-button-secondary > .p-button, .p-splitbutton.p-button-secondary > .p-button, .p-fileupload-choose.p-button-secondary {
+  color: #ffffff;
+  background: #64748b;
+  border: 1px solid #64748b;
+}
+
+.p-paginator{
+  border-top-left-radius: 0px!important;
+  border-top-right-radius: 0px!important;
+}
+
+.p-button.p-button-text {
+  background-color: transparent;
+  color: #ffffff;
+  border-color: transparent;
 }

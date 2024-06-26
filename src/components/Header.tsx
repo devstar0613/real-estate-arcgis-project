@@ -43,7 +43,7 @@ export default function Header() {
 				<a href="/">
 					<img
 						// src="https://www.dropbox.com/scl/fi/ensej1l64crnkpsmy2kbi/atlaspro-light-logo-1.png?rlkey=t18h2pq0lez222klradjj8fy9&raw=1"
-						src="atlaspro_logo.png"
+						src="/atlaspro_logo.png"
 						alt="Atlas Pro Intelligence Logo"
 						className="mx-auto" // Adjust the class as needed for styling
 						width="100%"
@@ -64,7 +64,7 @@ export default function Header() {
 				<div style={{cursor:'pointer'}}>
 					<img
 						// src="https://www.dropbox.com/scl/fi/0tssi4mzfom6e3y7p0n0f/Pngtree-user-icon_4479727.png?rlkey=b7q7n33exi2m4b7jkmdh4bf6m&raw=1"
-						src="settings.png"
+						src="/settings.png"
 						alt="Atlas Pro Intelligence Logo"
 						className="mx-auto avatar_image" // Adjust the class as needed for styling
 						width="30px"

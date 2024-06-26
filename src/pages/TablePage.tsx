@@ -44,7 +44,7 @@ export default function TablePage() {
 				</table>
 			</div> */}
 			<div style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
-				<DataTable value={data? data: []} scrollable stripedRows tableStyle={{ minWidth: '50rem', fontSize:'1rem' }}>
+				<DataTable value={data? data: []} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50, 100]} scrollable stripedRows tableStyle={{ minWidth: '50rem', fontSize:'1rem' }}>
 				{/* <DataTable value={data? data: []} paginator rows={5} rowsPerPageOptions={[10, 25, 50]} tableStyle={{ minWidth: '50rem', borderRadius: '10px' }}> */}
 					<Column field="Parcel Number" header="Parcel ID"></Column>
 					<Column field="Parcel Address" header="Address"></Column>

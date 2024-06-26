@@ -32,6 +32,7 @@ import Polygon from "@arcgis/core/geometry/Polygon.js";
 import Draw from "@arcgis/core/views/draw/Draw"
 import GeoJSONLayer from "@arcgis/core/layers/GeoJSONLayer";
 import esriConfig from "@arcgis/core/config.js";
+import * as api from '../api/index.js'
 import UI from "@arcgis/core/views/ui/UI.js";
 import {unparse} from 'papaparse';
 import { parcel_fields_from_regrid, default_parcelInfo, FCC_fields } from "./Data Fields";
@@ -554,13 +555,7 @@ export default function MapComponent() {
       if (file) {
         const uniqueId = uuidv4();
         setFileName(file.name.split('.')[0]);
-        const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
-          params:{
-            file: uniqueId + file.name,
-            // type: file.type
-            type: 'application/octet-stream'
-          }
-        })
+        const response = await api.getSignedUrl(uniqueId + file.name, 'application/octet-stream')
         const signedUrl = response.data
 
         console.log('=========response=========', response)
@@ -909,13 +904,7 @@ export default function MapComponent() {
           let uniqueId = uuidv4();
           let file= selectedFiles[i]
           setFileName(file.name.split('.')[0]);
-          const response = await axios.get('https://map-file-upload-server.vercel.app/getSignedUrl',{
-            params:{
-              file: uniqueId + file.name,
-              // type: file.type
-              type: file.type || 'application/octet-stream'
-            }
-          })
+          const response = await api.getSignedUrl(uniqueId + file.name, file.type || 'application/octet-stream')
           const signedUrl = response.data
     
           const xhr = new XMLHttpRequest();
@@ -946,7 +935,8 @@ export default function MapComponent() {
           const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${uniqueId + file.name}`;
           kml_urls.push(publicUrl)
         }
-        const newJobRequest = await axios.post('https://map-file-upload-server.vercel.app/new_job', {email: user?.name, username: user?.email, auth0_sub: user?.sub, job_title, job_instruction, kml_urls: kml_urls}) as any;
+        // const newJobRequest = await axios.post('https://map-file-upload-server.vercel.app/new_job', {email: user?.name, username: user?.email, auth0_sub: user?.sub, job_title, job_instruction, kml_urls: kml_urls}) as any;
+        const newJobRequest = await api.newJob({email: user?.name, username: user?.email, auth0_sub: user?.sub, job_title, job_instruction, kml_urls: kml_urls}) as any;
 
         if(newJobRequest.data.success){
           showSuccess('Your job request was sent correctly!')
@@ -1090,7 +1080,7 @@ export default function MapComponent() {
           <div>
             <div className="left_bar_item" onClick={handleUploadClick}>
               <img
-                src="upload_kml.png"
+                src="/upload_kml.png"
                 alt="upload kml"
                 className="left_bar_icon"
               />
@@ -1105,7 +1095,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item" id="drawPolygonBtn">
               <img
-                src="draw.png"
+                src="/draw.png"
                 alt="draw polygon"
                 className="left_bar_icon"
               />
@@ -1113,7 +1103,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item" onClick={handleExportPolygon}>
               <img
-                src="export_kml.png"
+                src="/export_kml.png"
                 alt="export kml"
                 className="left_bar_icon"
               />
@@ -1121,7 +1111,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item" onClick={handleExportCSV}>
               <img
-                src="export_addresses.png"
+                src="/export_addresses.png"
                 alt="export addresses"
                 className="left_bar_icon"
               />
@@ -1129,7 +1119,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item">
               <img
-                src="summary_report.png"
+                src="/summary_report.png"
                 alt="summary report"
                 className="left_bar_icon"
               />
@@ -1140,7 +1130,7 @@ export default function MapComponent() {
           <div>
             <div className="left_bar_item" onClick={()=> {setVisible(true);}}>
               <img
-                src="katapult_icon.png"
+                src="/katapult_icon.png"
                 alt="view my assets"
                 className="left_bar_icon"
               />
@@ -1148,7 +1138,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item" onClick={handleViewMyAssets}>
               <img
-                src="white_network.png"
+                src="/white_network.png"
                 alt="view my assets"
                 className="left_bar_icon"
               />
@@ -1156,7 +1146,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item" onClick={handleRunAIAgent}>
               <img
-                src="ai_agent.png"
+                src="/ai_agent.png"
                 alt="run ai agent"
                 className="left_bar_icon"
               />
@@ -1164,7 +1154,7 @@ export default function MapComponent() {
             </div>
             <div className="left_bar_item">
               <img
-                src="access_training.png"
+                src="/access_training.png"
                 alt="Access Training"
                 className="left_bar_icon"
               />
