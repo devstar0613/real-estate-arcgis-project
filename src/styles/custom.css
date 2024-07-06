@@ -341,3 +341,17 @@ th, td{
   color: #ffffff;
   border-color: transparent;
 }
+
+.profile-right{
+  font-size: 17px;
+  display: flex;
+  flex-direction: column;
+  place-content: space-between;
+}
+
+.subscribe{
+  font-size: 20px;
+  color: #2DFF49;
+  font-weight: bold;
+  cursor: pointer;
+}

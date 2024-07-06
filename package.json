@@ -7,6 +7,7 @@
     "@auth0/auth0-react": "^2.2.3",
     "@dqbd/tiktoken": "^1.0.2",
     "@google-cloud/storage": "^7.7.0",
+    "@stripe/stripe-js": "^4.1.0",
     "@tabler/icons-react": "^2.9.0",
     "@tailwindcss/typography": "^0.5.10",
     "@testing-library/jest-dom": "^5.17.0",

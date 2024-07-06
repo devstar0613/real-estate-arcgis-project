@@ -45,6 +45,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Checkbox } from "primereact/checkbox";
+import { Card } from 'primereact/card';
 const popupRoot = document.createElement('div');
 
 export default function MapComponent() {
@@ -81,10 +82,7 @@ export default function MapComponent() {
   const [job_instruction, setJob_instruction] = useState('');
   const [checked, setChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(()=>{
-    console.log('======user information========', user)
-  }, [user])
+  const [subscriptionStatus, setSubscriptionStatus] = useState('Active')
   
   let items = [
     {
@@ -1048,262 +1046,301 @@ export default function MapComponent() {
     isFCCSelectedRef.current = isFCCSelected;
   }, [isFCCSelected]);
 
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await api.getUserInfo(user?.email);
+        setSubscriptionStatus(response.data.plan);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+
+    if (user?.email) {
+      fetchUserInfo();
+    }
+  }, [user]);
+
+  const handleSubscription = async () => {
+    try {
+      console.log('=====here is to get checkout url======',user?.sub)
+      const response= await api.getCheckoutUrl(user?.sub)
+      if(response.data.url){
+        window.location.href = response.data.url
+      }
+      console.log('=====get checkout url======', response)
+
+    } catch (error) {
+      console.error('Error creating Stripe Checkout Session:', error);
+    }
+  };
+
   return (
     <section id="map-page-container" className="h-screen">
       <Header />
-      <Splitter style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
-        <SplitterPanel className="align-items-center justify-content-center left-bar" style={{display: showLeftMenu? 'block': 'none'}} size={17} minSize={10}>
-          <div>
-            <div className="left_bar_item" onClick={()=>changeSelectionHandler('Parcel')}>
-              <div className="custom_checkbox_outside">
-                {isParcelSelected && 
-                  <div className="custom_checkbox_inside"></div>}
-              </div>
-              <p className="left_bar_letter">Parcel Data</p>
-            </div>
-            <div className="left_bar_item" onClick={()=>changeSelectionHandler('FCC')}>
-              <div className="custom_checkbox_outside">
-                {isFCCSelected && 
-                  <div className="custom_checkbox_inside"></div>}
-              </div>
-              <p className="left_bar_letter">FCC Data</p>
-            </div>
-            <div className="left_bar_item">
-              <div className="custom_checkbox_outside">
-              {isElevationSelected &&
-                <div className="custom_checkbox_inside"></div>}
-              </div>
-              <p className="left_bar_letter">Elevation</p>
-            </div>
-            <hr style={{marginBottom:'15px'}}/>
-          </div>
-          <div>
-            <div className="left_bar_item" onClick={handleUploadClick}>
-              <img
-                src="/upload_kml.png"
-                alt="upload kml"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Upload KML/KMZ</p>
-              <input
-                type="file"
-                accept=".kml,.kmz"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                onChange={handleFileUpload}
-              />
-            </div>
-            <div className="left_bar_item" id="drawPolygonBtn">
-              <img
-                src="/draw.png"
-                alt="draw polygon"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Draw Polygon</p>
-            </div>
-            <div className="left_bar_item" onClick={handleExportPolygon}>
-              <img
-                src="/export_kml.png"
-                alt="export kml"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Export KML</p>
-            </div>
-            <div className="left_bar_item" onClick={handleExportCSV}>
-              <img
-                src="/export_addresses.png"
-                alt="export addresses"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Export Addresses</p>
-            </div>
-            <div className="left_bar_item">
-              <img
-                src="/summary_report.png"
-                alt="summary report"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Summary Report</p>
-            </div>
-            <hr style={{marginBottom:'15px'}}/>
-          </div>
-          <div>
-            <div className="left_bar_item" onClick={()=> {setVisible(true);}}>
-              <img
-                src="/katapult_icon.png"
-                alt="view my assets"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Job Request</p>
-            </div>
-            <div className="left_bar_item" onClick={handleViewMyAssets}>
-              <img
-                src="/white_network.png"
-                alt="view my assets"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">View My Assets</p>
-            </div>
-            <div className="left_bar_item" onClick={handleRunAIAgent}>
-              <img
-                src="/ai_agent.png"
-                alt="run ai agent"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Run AI Agent</p>
-            </div>
-            <div className="left_bar_item">
-              <img
-                src="/access_training.png"
-                alt="Access Training"
-                className="left_bar_icon"
-              />
-              <p className="left_bar_letter">Access Training</p>
-            </div>
-          </div>
-        </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: showLeftMenu? 'block': 'none'}} size={25} minSize={10}>
-          <div className="parcel-information">
-            <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
-            {parcel_fields_from_regrid.map((item) => (
-              <div key={item.field}>
-                <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                  <div style={{ flex: '60%' }}>
-                    <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+      {subscriptionStatus!=='Paused' ? (
+        <>
+          <Splitter style={{ height: '90%', paddingTop:'1%', paddingBottom:'1%' }} className="map_sub_container">
+            <SplitterPanel className="align-items-center justify-content-center left-bar" style={{display: showLeftMenu? 'block': 'none'}} size={17} minSize={10}>
+              <div>
+                <div className="left_bar_item" onClick={()=>changeSelectionHandler('Parcel')}>
+                  <div className="custom_checkbox_outside">
+                    {isParcelSelected && 
+                      <div className="custom_checkbox_inside"></div>}
                   </div>
-                  <div style={{ flex: '40%' }}>
-                    {item.label === 'Zoning Code Link' ? (
-                      <span><a style={{ color: "blue" }} href={displayData[item.field]}>View</a></span>
-                    ) : (
-                      (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
-                    )}
-                  </div>
+                  <p className="left_bar_letter">Parcel Data</p>
                 </div>
-                <hr />
-              </div>
-            ))}
-            {fccData && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px', marginTop:'25px'}}>FCC Information</p>}
-            {fccData && FCC_fields.map((item) => (
-              <div key={item.field}>
-                <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                  <div style={{ flex: '60%' }}>
-                    <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                <div className="left_bar_item" onClick={()=>changeSelectionHandler('FCC')}>
+                  <div className="custom_checkbox_outside">
+                    {isFCCSelected && 
+                      <div className="custom_checkbox_inside"></div>}
                   </div>
-                  <div style={{ flex: '40%' }}>
-                    {item.field==='Existing Provider'? (fccData['AvgDown']<1000? 'Cable': 'Fiber'): 
-                    (['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field])}
-                  </div>
+                  <p className="left_bar_letter">FCC Data</p>
                 </div>
-                <hr />
+                <div className="left_bar_item">
+                  <div className="custom_checkbox_outside">
+                  {isElevationSelected &&
+                    <div className="custom_checkbox_inside"></div>}
+                  </div>
+                  <p className="left_bar_letter">Elevation</p>
+                </div>
+                <hr style={{marginBottom:'15px'}}/>
               </div>
-            ))}
-          </div>
-          <div className="chatbot_panel">
-            <div className="chatbot_title">
-              <p>{address}</p>
-            </div>
-            <PopupInfo address={popupData}></PopupInfo>
-          </div>
-        </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center" size={58}>
-          <div
-            ref={mapDiv}
-            style={{
-              height: '100%',
-              width: '100%',
-              overflow: 'hidden',
-            }}
-          >
-            <div className="flex card justify-content-center" style={{boxShadow:'0 0 0 !important'}} id="customTextDiv">
-              <Menu model={items} popup ref={menuLeft} id="popup_menu_left"style={{marginTop:'5px'}} />
-              <i className="menu-button pi pi-bars" onClick={(event) => {menuLeft.current.toggle(event)}} aria-controls="popup_menu_left" aria-haspopup />
-            </div>
-            {/* <PopupPortal mountNode={popupRoot}>
-              <PopupInfo address={popupData}></PopupInfo>
-            </PopupPortal> */}
-            {/* <pre>{JSON.stringify(displayData, null, 2)}</pre> */}
-          </div>
-        </SplitterPanel>
-        <SplitterPanel className="align-items-center justify-content-center table-bar" style={{display: showTable? 'block': 'none'}} size={42} minSize={10}>
-          {/* <DataTable value={fetchedParcels} scrollable stripedRows tableStyle={{ minWidth: '40%', fontSize:'0.8rem' }}>
-            <Column field="Parcel Number" header="Parcel ID"></Column>
-            <Column field="Parcel Address" header="Address"></Column>
-            <Column field="Owner Name" header="Owner"></Column>
-            <Column field="Owner Email" header="Email"></Column>
-            <Column field="Owner Phone" header="Phone Number"></Column>
-            <Column field="Land Use Code: Activity" header="Land Use Code"></Column>
-            <Column field="Land Use Code Description: Activity" header="Land Use Description"></Column>
-          </DataTable> */}
-          <div style={{textAlign: 'right'}}>
-            <a href='/table' target="_blank">
-              <i className="pi pi-external-link" style={{cursor: 'pointer'}} onClick={() => {}} aria-controls="popup_menu_left" />
-            </a>
-          </div>
-          <table style={{fontSize: '1rem'}}>
-            <thead>
-              <tr>
-                <th>Parcel ID</th>
-                <th>Address</th>
-                <th>Owner</th>
-                <th>Email</th>
-                <th>Phone Number</th>
-                <th>Land Use Code</th>
-                <th>Land Use Description</th>
-              </tr>
-            </thead>
-            <tr>
-              <td colSpan={7}>
-                <hr style={{marginTop: '12px', marginBottom: '12px'}}/>
-              </td>
-            </tr>
-            <tbody>
-              {fetchedParcels.length> 0 ?
-               fetchedParcels.slice(0,4).map((parcel:any, index:any)=> (
-                <tr key={index}>
-                  <td className="limited-text">{parcel['Parcel Number']}</td>
-                  <td className="limited-text">{parcel['Parcel Address']}</td>
-                  <td className="limited-text">{parcel['Owner Name']}</td>
-                  <td className="limited-text">{parcel['Owner Email']}</td>
-                  <td className="limited-text">{parcel['Owner Phone']}</td>
-                  <td className="limited-text">{parcel['Land Use Code: Activity']}</td>
-                  <td className="limited-text">{parcel['Land Use Code Description: Activity']}</td>
+              <div>
+                <div className="left_bar_item" onClick={handleUploadClick}>
+                  <img
+                    src="/upload_kml.png"
+                    alt="upload kml"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Upload KML/KMZ</p>
+                  <input
+                    type="file"
+                    accept=".kml,.kmz"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                  />
+                </div>
+                <div className="left_bar_item" id="drawPolygonBtn">
+                  <img
+                    src="/draw.png"
+                    alt="draw polygon"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Draw Polygon</p>
+                </div>
+                <div className="left_bar_item" onClick={handleExportPolygon}>
+                  <img
+                    src="/export_kml.png"
+                    alt="export kml"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Export KML</p>
+                </div>
+                <div className="left_bar_item" onClick={handleExportCSV}>
+                  <img
+                    src="/export_addresses.png"
+                    alt="export addresses"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Export Addresses</p>
+                </div>
+                <div className="left_bar_item">
+                  <img
+                    src="/summary_report.png"
+                    alt="summary report"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Summary Report</p>
+                </div>
+                <hr style={{marginBottom:'15px'}}/>
+              </div>
+              <div>
+                <div className="left_bar_item" onClick={()=> {setVisible(true);}}>
+                  <img
+                    src="/katapult_icon.png"
+                    alt="view my assets"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Job Request</p>
+                </div>
+                <div className="left_bar_item" onClick={handleViewMyAssets}>
+                  <img
+                    src="/white_network.png"
+                    alt="view my assets"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">View My Assets</p>
+                </div>
+                <div className="left_bar_item" onClick={handleRunAIAgent}>
+                  <img
+                    src="/ai_agent.png"
+                    alt="run ai agent"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Run AI Agent</p>
+                </div>
+                <div className="left_bar_item" onClick={handleSubscription}>
+                  <img
+                    src="/access_training.png"
+                    alt="Access Training"
+                    className="left_bar_icon"
+                  />
+                  <p className="left_bar_letter">Access Training</p>
+                </div>
+              </div>
+            </SplitterPanel>
+            <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: showLeftMenu? 'block': 'none'}} size={25} minSize={10}>
+              <div className="parcel-information">
+                <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
+                {parcel_fields_from_regrid.map((item) => (
+                  <div key={item.field}>
+                    <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                      <div style={{ flex: '60%' }}>
+                        <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                      </div>
+                      <div style={{ flex: '40%' }}>
+                        {item.label === 'Zoning Code Link' ? (
+                          <span><a style={{ color: "blue" }} href={displayData[item.field]}>View</a></span>
+                        ) : (
+                          (item.label.includes('Date')) || (typeof displayData[item.field] === 'string' && displayData[item.field].includes('date')) ? new Date(displayData[item.field]).toISOString().slice(0, 10) : displayData[item.field]
+                        )}
+                      </div>
+                    </div>
+                    <hr />
+                  </div>
+                ))}
+                {fccData && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px', marginTop:'25px'}}>FCC Information</p>}
+                {fccData && FCC_fields.map((item) => (
+                  <div key={item.field}>
+                    <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                      <div style={{ flex: '60%' }}>
+                        <span style={{ fontWeight: '500' }}>{item.label}:</span>&nbsp;
+                      </div>
+                      <div style={{ flex: '40%' }}>
+                        {item.field==='Existing Provider'? (fccData['AvgDown']<1000? 'Cable': 'Fiber'): 
+                        (['AvgDown', 'AvgUp'].includes(item.field)? fccData[item.field].toFixed(0): fccData[item.field])}
+                      </div>
+                    </div>
+                    <hr />
+                  </div>
+                ))}
+              </div>
+              <div className="chatbot_panel">
+                <div className="chatbot_title">
+                  <p>{address}</p>
+                </div>
+                <PopupInfo address={popupData}></PopupInfo>
+              </div>
+            </SplitterPanel>
+            <SplitterPanel className="align-items-center justify-content-center" size={58}>
+              <div
+                ref={mapDiv}
+                style={{
+                  height: '100%',
+                  width: '100%',
+                  overflow: 'hidden',
+                }}
+              >
+                <div className="flex card justify-content-center" style={{boxShadow:'0 0 0 !important'}} id="customTextDiv">
+                  <Menu model={items} popup ref={menuLeft} id="popup_menu_left"style={{marginTop:'5px'}} />
+                  <i className="menu-button pi pi-bars" onClick={(event) => {menuLeft.current.toggle(event)}} aria-controls="popup_menu_left" aria-haspopup />
+                </div>
+                {/* <PopupPortal mountNode={popupRoot}>
+                  <PopupInfo address={popupData}></PopupInfo>
+                </PopupPortal> */}
+                {/* <pre>{JSON.stringify(displayData, null, 2)}</pre> */}
+              </div>
+            </SplitterPanel>
+            <SplitterPanel className="align-items-center justify-content-center table-bar" style={{display: showTable? 'block': 'none'}} size={42} minSize={10}>
+              {/* <DataTable value={fetchedParcels} scrollable stripedRows tableStyle={{ minWidth: '40%', fontSize:'0.8rem' }}>
+                <Column field="Parcel Number" header="Parcel ID"></Column>
+                <Column field="Parcel Address" header="Address"></Column>
+                <Column field="Owner Name" header="Owner"></Column>
+                <Column field="Owner Email" header="Email"></Column>
+                <Column field="Owner Phone" header="Phone Number"></Column>
+                <Column field="Land Use Code: Activity" header="Land Use Code"></Column>
+                <Column field="Land Use Code Description: Activity" header="Land Use Description"></Column>
+              </DataTable> */}
+              <div style={{textAlign: 'right'}}>
+                <a href='/table' target="_blank">
+                  <i className="pi pi-external-link" style={{cursor: 'pointer'}} onClick={() => {}} aria-controls="popup_menu_left" />
+                </a>
+              </div>
+              <table style={{fontSize: '1rem'}}>
+                <thead>
+                  <tr>
+                    <th>Parcel ID</th>
+                    <th>Address</th>
+                    <th>Owner</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Land Use Code</th>
+                    <th>Land Use Description</th>
+                  </tr>
+                </thead>
+                <tr>
+                  <td colSpan={7}>
+                    <hr style={{marginTop: '12px', marginBottom: '12px'}}/>
+                  </td>
                 </tr>
-              )): <tr><td colSpan={7}>No data</td></tr>}
-            </tbody>
-          </table>
-          <div style={{textAlign: 'center', marginTop: '20vh', fontSize: '1.2rem'}}>
-            <p>This area is to display csv file in table</p>
-            <p>format based on polygon selected.</p>
-          </div>
-        </SplitterPanel>
-      </Splitter>
-      <Toast ref={toast} />
-      <Dialog header="Job Request to KatapultPro" visible={visible} style={{ width: '500px', background: '#00211D' }} onHide={() => {if (!visible) return; setVisible(false); }}>
-        <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
-          <label htmlFor="api">KatapultPro Job Title</label>
-          <InputText value={job_title} style={{color: 'black'}} onChange={(e) => setJob_title(e.target.value)} id="api" aria-describedby="api-help" />
-        </div>
-        <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
-          <label htmlFor="job_instruction">Job Instruction</label>
-          <InputTextarea value={job_instruction} style={{color: 'black'}} onChange={(e) => setJob_instruction(e.target.value)} rows={3} cols={50} />
-        </div>
-        <div>
-          <p>Please upload any relevant polygons / KML Files:</p>
-          <MyDropzone {...{setSelectedFiles}} {...{selectedFiles}} />
-        </div>
-        <div className="flex align-items-center" style={{marginTop: '15px'}}>
-          <Checkbox inputId="ingredient1" name="pizza" value="Cheese" onChange={e=> setChecked(e?.checked!)} checked={checked} />
-          <label htmlFor="ingredient1" className="ml-2">I have revised the job request accuracy laid out above.</label>
-        </div>
-        <div style={{marginTop: '10px'}}>
-          <p style={{fontSize: '12px'}}>
-            Note: Please provide a guest account access to your KatapultPro and email us an API key with writing permission at contact@atlaspro.ai prior to submitting a job request.
-          </p>
-        </div>
-        <div style={{float: 'right', marginTop: '20px'}}>
-          <Button loading={isLoading} label="Submit" onClick={handleJobRequest} />
-        </div>
-      </Dialog>
+                <tbody>
+                  {fetchedParcels.length> 0 ?
+                  fetchedParcels.slice(0,4).map((parcel:any, index:any)=> (
+                    <tr key={index}>
+                      <td className="limited-text">{parcel['Parcel Number']}</td>
+                      <td className="limited-text">{parcel['Parcel Address']}</td>
+                      <td className="limited-text">{parcel['Owner Name']}</td>
+                      <td className="limited-text">{parcel['Owner Email']}</td>
+                      <td className="limited-text">{parcel['Owner Phone']}</td>
+                      <td className="limited-text">{parcel['Land Use Code: Activity']}</td>
+                      <td className="limited-text">{parcel['Land Use Code Description: Activity']}</td>
+                    </tr>
+                  )): <tr><td colSpan={7}>No data</td></tr>}
+                </tbody>
+              </table>
+              <div style={{textAlign: 'center', marginTop: '20vh', fontSize: '1.2rem'}}>
+                <p>This area is to display csv file in table</p>
+                <p>format based on polygon selected.</p>
+              </div>
+            </SplitterPanel>
+          </Splitter>
+          <Toast ref={toast} />
+          <Dialog header="Job Request to KatapultPro" visible={visible} style={{ width: '500px', background: '#00211D' }} onHide={() => {if (!visible) return; setVisible(false); }}>
+            <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
+              <label htmlFor="api">KatapultPro Job Title</label>
+              <InputText value={job_title} style={{color: 'black'}} onChange={(e) => setJob_title(e.target.value)} id="api" aria-describedby="api-help" />
+            </div>
+            <div className="flex gap-2 flex-column" style={{paddingBottom: '20px'}}>
+              <label htmlFor="job_instruction">Job Instruction</label>
+              <InputTextarea value={job_instruction} style={{color: 'black'}} onChange={(e) => setJob_instruction(e.target.value)} rows={3} cols={50} />
+            </div>
+            <div>
+              <p>Please upload any relevant polygons / KML Files:</p>
+              <MyDropzone {...{setSelectedFiles}} {...{selectedFiles}} />
+            </div>
+            <div className="flex align-items-center" style={{marginTop: '15px'}}>
+              <Checkbox inputId="ingredient1" name="pizza" value="Cheese" onChange={e=> setChecked(e?.checked!)} checked={checked} />
+              <label htmlFor="ingredient1" className="ml-2">I have revised the job request accuracy laid out above.</label>
+            </div>
+            <div style={{marginTop: '10px'}}>
+              <p style={{fontSize: '12px'}}>
+                Note: Please provide a guest account access to your KatapultPro and email us an API key with writing permission at contact@atlaspro.ai prior to submitting a job request.
+              </p>
+            </div>
+            <div style={{float: 'right', marginTop: '20px'}}>
+              <Button loading={isLoading} label="Submit" onClick={handleJobRequest} />
+            </div>
+          </Dialog>
+        </>
+      ):(
+        <Card style={{width: '500px', margin: 'auto', marginTop: '20vh'}}>
+          <h2 style={{fontSize: '25px'}}>Your trial has ended</h2>
+          <p style={{paddingBottom: '30px'}}>Please subscribe to continue using our service.</p>
+          <Button label="Subscribe Now" onClick={handleSubscription} />
+        </Card>
+      )}
     </section>
   );
 }
