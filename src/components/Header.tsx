@@ -110,15 +110,15 @@ export default function Header() {
             <p>Email: {user?.email}</p>
             <p>Plan:&nbsp;
               <span>
-                {/* {userInfo && userInfo.plan=== 'Pro' && 
+                {userInfo && userInfo.plan=== 'Pro' && 
                   `Pro (Expired at 08/05/2024)`
-                } */}
+                }
                 {userInfo && userInfo.plan=== 'Free Trial' && 
                   <>
                     Free Trial &nbsp;&nbsp;<span className='subscribe' onClick={handleSubscription}>Subscribe</span>
                   </>
                 }
-                {userInfo && userInfo.plan!== 'Paused' && 
+                {userInfo && userInfo.plan=== 'Paused' && 
                   <>
                     Trial ended &nbsp;&nbsp;<span className='subscribe' onClick={handleSubscription}>Subscribe</span>
                   </>
