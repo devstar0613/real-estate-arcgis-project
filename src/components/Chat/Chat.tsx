@@ -125,8 +125,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         const endpoint = "https://atlaspro-310aa99f8bb1.herokuapp.com/get_response";
         let body: any;
         const elevation = localStorage.getItem('Elevation') || '10m';
-        const parcelData = localStorage.getItem('parcelData') || '';
-        const incomeData = localStorage.getItem('incomeData') || '';
+        const parcelData = localStorage.getItem('parcelData') || '{}';
+        const incomeData = localStorage.getItem('incomeData') || '{}';
         const address = localStorage.getItem('Address') || '';
         body = {messages: [message.content], address:address, elevation: elevation, parcelData: JSON.parse(parcelData), incomeData: JSON.parse(incomeData)}
         // body = {messages: updatedConversation.messages, address:address, elevation: elevation, parcelData: parcelData, incomeData: incomeData}
