@@ -130,7 +130,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
       }`}
       style={{ overflowWrap: 'anywhere' }}
     >
-      <div className="relative flex p-2 m-auto text-base md:max-w-2xl md:gap-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl" style={{paddingRight:'10px'}}>
+      <div className="relative flex p-2 m-auto text-base md:max-w-2xl lg:max-w-2xl lg:px-0 xl:max-w-3xl" style={{paddingRight:'10px',gap: '1rem'}}>
         <div className="min-w-[40px] text-right font-bold">
           {message.role === 'assistant' ? (
             <img 
@@ -143,7 +143,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
           )}
         </div>
 
-        <div className="prose mt-[-2px] w-full dark:prose-invert">
+        <div className="w-full prose dark:prose-invert">
           {message.role === 'user' ? (
             <div className="flex w-full" style={{paddingRight:'15px'}}>
               {isEditing ? (
@@ -160,15 +160,17 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                       fontFamily: 'inherit',
                       fontSize: 'inherit',
                       lineHeight: 'inherit',
-                      padding: '0',
+                      padding: ' 3px 0 3px 8px',
                       margin: '0',
                       overflow: 'hidden',
+                      background: '#08241c'
                     }}
                   />
 
                   <div className="flex justify-center mt-10 space-x-4">
                     <button
-                      className="h-[40px] rounded-md bg-blue-500 px-4 py-1 text-sm font-medium text-white enabled:hover:bg-blue-600 disabled:opacity-50"
+                      className="h-[40px] rounded-md px-4 py-1 text-sm font-medium text-white enabled:hover:bg-blue-600 disabled:opacity-50"
+                      style={{background: '#08241c'}}
                       onClick={handleEditMessage}
                       disabled={messageContent.trim().length <= 0}
                     >
@@ -176,6 +178,7 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
                     </button>
                     <button
                       className="h-[40px] rounded-md border border-neutral-300 px-4 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                      style={{background: '#626963'}}
                       onClick={() => {
                         setMessageContent(message.content);
                         setIsEditing(false);
