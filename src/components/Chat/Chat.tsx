@@ -122,7 +122,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         homeDispatch({ field: 'loading', value: false });
         homeDispatch({ field: 'messageIsStreaming', value: false });
 
-        const endpoint = "https://atlaspro-310aa99f8bb1.herokuapp.com/get_response";
+        const endpoint = "https://chatbot-flask-server-5bfac58ae280.herokuapp.com/get_response";
         let body: any;
         const elevation = localStorage.getItem('Elevation') || '10m';
         const parcelData = localStorage.getItem('parcelData') || '{}';
