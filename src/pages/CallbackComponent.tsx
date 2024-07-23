@@ -73,21 +73,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { useHistory } from 'react-router-dom';
 
 const CallbackComponent = () => {
-  const { isAuthenticated, error, isLoading, getAccessTokenSilently } = useAuth0();
+  const { isAuthenticated, error, isLoading, getAccessTokenSilently, loginWithRedirect } = useAuth0();
   const history = useHistory();
 
   useEffect(() => {
     if (isLoading) {
       console.log('Waiting');
       // Maybe display a spinner or loading message
-      return;
-    }
-
-    if (error) {
-      // Handle or display the error
-      console.log(error);
-      // Optionally redirect to a login page
-      history.push('/login');
       return;
     }
 
@@ -102,22 +94,19 @@ const CallbackComponent = () => {
           console.error(e);
         }
       };
-
       getToken();
 
-      // Redirect to the homepage or dashboard
       history.push('/');
     }
+
   }, [isAuthenticated, error, isLoading, getAccessTokenSilently, history]);
 
+  if (error) {
+    history.push('/login');
+  }
   // While waiting for the callback to complete, you can show a loading message or spinner
   if (isLoading) {
     return <div></div>;
-  }
-
-  // In case of an error, you can show an error message
-  if (error) {
-    return <div>{error.message}</div>;
   }
 
   // If there's no error and it's not loading, it means the callback was successful

@@ -67,7 +67,7 @@
     font-weight: 400;
     /* height: 200px; */
     background-color: #81908e;
-    height: calc(50% - 15px);
+    height: calc(40% - 15px);
     overflow-y: auto;
     overflow-x: auto;
     margin-bottom: 16px;
@@ -128,7 +128,7 @@
 .chatbot_panel{
     display: flex;
     flex-direction: column;
-    height: 50%;
+    height: 60%;
 }
 
 /* .esri-ui-inner-container {

@@ -21,5 +21,6 @@ export const getUserInfo = (email) => API.get(`/get_user/${email}`);
 
 // POST APIs
 export const newJob = (body) => API.post(`/new_job`, body);
+export const sendVerificationEmail = (body) => API.post(`/send_verification_email`, body);
 
 // export const getResponse = (data) => API.post(`/get_response`, data);
