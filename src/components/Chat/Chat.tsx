@@ -25,6 +25,7 @@ import HomeContext from '../../utils/context/home.context';
 import { ChatInput } from '../../components/Chat/ChatInput';
 import { ChatLoader } from '../../components/Chat/ChatLoader';
 import { MemoizedChatMessage } from '../../components/Chat/MemoizedChatMessage';
+import * as api from '../../api/index.js'
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
@@ -122,7 +123,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         homeDispatch({ field: 'loading', value: false });
         homeDispatch({ field: 'messageIsStreaming', value: false });
 
-        const endpoint = "https://chatbot-flask-server-5bfac58ae280.herokuapp.com/get_response";
         let body: any;
         const elevation = localStorage.getItem('Elevation') || '10m';
         const parcelData = localStorage.getItem('parcelData') || '{}';
@@ -133,7 +133,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         
         console.log('----->parcelData', parcelData);
         console.log('----->body', body);
-        const get_response = await axios.post(endpoint, body);
+        const endpoint = "https://chatbot-flask-server-5bfac58ae280.herokuapp.com/get_response";
+        // const get_response = await axios.post(endpoint, body);
+        const get_response = await api.getResponse(body);
         console.log('------response_data', get_response.data);
         setIsTyping(false);
         resetTypingIndicator();

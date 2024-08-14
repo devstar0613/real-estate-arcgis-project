@@ -82,6 +82,8 @@ export default function MapComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState('Active')
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | undefined>(true)
+  const [polygonRoadLength, setPolygonRoadLength] = useState<any>(0)
+  const [totalPoles, setTotalPoles] = useState<any>(0)
   
   let items = [
     {
@@ -639,6 +641,29 @@ export default function MapComponent() {
       const polygon_center = polygonRings.reduce((acc, curr) => {
         return { lon: acc.lon + curr[0] / polygonRings.length, lat: acc.lat + curr[1] / polygonRings.length };
       }, { lon: 0, lat: 0 });
+
+      
+      const fetchRoadLength = async() => {
+        try {
+          const formattedData = polygonRings.map(coord => {
+            return `(${coord[0].toFixed(4)}, ${coord[1].toFixed(4)})`;
+          });
+    
+          const polygon_data_for_api = `[${formattedData.join(', ')}]`
+          console.log('=======formattedData==========', polygon_data_for_api)
+          const roadLength = await api.getRoadLength({"polygon": polygon_data_for_api})
+          console.log('=======roadLength==========', roadLength)
+          if(roadLength.data?.length){
+            const poles= Math.floor(roadLength.data.length * 3.28084 / 16.5);
+            setTotalPoles(poles);
+            const length = roadLength.data.length / 1000;
+            setPolygonRoadLength(length.toFixed(3));
+          }
+        } catch (error) {
+          console.error('Error fetching polygon road length:', error);
+        }
+      }
+      fetchRoadLength();
 
       setMapCenter([polygon_center.lon, polygon_center.lat])
       view.graphics.removeAll();
@@ -1218,6 +1243,38 @@ export default function MapComponent() {
                       <hr />
                     </div>
                   ))}
+                  {polygonRings.length >0 && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px', marginTop:'25px'}}>Polygon Information</p>}
+                  {polygonRings.length >0 && 
+                    <div>
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {polygonRoadLength} km
+                        </div>
+                      </div>
+                      <hr />
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Total Market Passings:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {fetchedParcels.length}
+                        </div>
+                      </div>
+                      <hr />
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Est. Total Poles:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {totalPoles} poles
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  }
                 </div>
                 <div className="chatbot_panel">
                   <div className="chatbot_title">
