@@ -656,8 +656,8 @@ export default function MapComponent() {
           if(roadLength.data?.length){
             const poles= Math.floor(roadLength.data.length * 3.28084 / 16.5);
             setTotalPoles(poles);
-            const length = roadLength.data.length / 1000;
-            setPolygonRoadLength(length.toFixed(3));
+            const length = roadLength.data.length * 3.28084;
+            setPolygonRoadLength(Math.floor(length));
           }
         } catch (error) {
           console.error('Error fetching polygon road length:', error);
@@ -1210,6 +1210,38 @@ export default function MapComponent() {
               </SplitterPanel>
               <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: showLeftMenu? 'block': 'none'}} size={25} minSize={10}>
                 <div className="parcel-information">
+                  {polygonRings.length >0 && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Polygon Information</p>}
+                  {polygonRings.length >0 && 
+                    <div style={{marginBottom: '25px'}}>
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {polygonRoadLength} feet
+                        </div>
+                      </div>
+                      <hr />
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Total Market Passings:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {fetchedParcels.length}
+                        </div>
+                      </div>
+                      <hr />
+                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
+                        <div style={{ flex: '60%' }}>
+                          <span style={{ fontWeight: '500' }}>Est. Total Poles:</span>&nbsp;
+                        </div>
+                        <div style={{ flex: '40%' }}>
+                          {totalPoles} poles
+                        </div>
+                      </div>
+                      <hr />
+                    </div>
+                  }
                   <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px'}}>Parcel Information</p>
                   {parcel_fields_from_regrid.map((item) => (
                     <div key={item.field}>
@@ -1243,38 +1275,6 @@ export default function MapComponent() {
                       <hr />
                     </div>
                   ))}
-                  {polygonRings.length >0 && <p style={{color:"white", fontSize:'22px', textAlign:'center', marginBottom:'15px', marginTop:'25px'}}>Polygon Information</p>}
-                  {polygonRings.length >0 && 
-                    <div>
-                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                        <div style={{ flex: '60%' }}>
-                          <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
-                        </div>
-                        <div style={{ flex: '40%' }}>
-                          {polygonRoadLength} km
-                        </div>
-                      </div>
-                      <hr />
-                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                        <div style={{ flex: '60%' }}>
-                          <span style={{ fontWeight: '500' }}>Total Market Passings:</span>&nbsp;
-                        </div>
-                        <div style={{ flex: '40%' }}>
-                          {fetchedParcels.length}
-                        </div>
-                      </div>
-                      <hr />
-                      <div style={{display:'flex', fontSize:'14px', color:'white'}}>
-                        <div style={{ flex: '60%' }}>
-                          <span style={{ fontWeight: '500' }}>Est. Total Poles:</span>&nbsp;
-                        </div>
-                        <div style={{ flex: '40%' }}>
-                          {totalPoles} poles
-                        </div>
-                      </div>
-                      <hr />
-                    </div>
-                  }
                 </div>
                 <div className="chatbot_panel">
                   <div className="chatbot_title">
