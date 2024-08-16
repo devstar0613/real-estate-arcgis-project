@@ -654,10 +654,10 @@ export default function MapComponent() {
           const roadLength = await api.getRoadLength({"polygon": polygon_data_for_api})
           console.log('=======roadLength==========', roadLength)
           if(roadLength.data?.length){
-            const poles= Math.floor(roadLength.data.length * 3.28084 / 16.5);
+            const poles= Math.floor(roadLength.data.length * 3.28084 / 288);
             setTotalPoles(poles);
             const length = roadLength.data.length / 1609.34;
-            setPolygonRoadLength(length.toFixed(3));
+            setPolygonRoadLength(length.toFixed(1));
           }
         } catch (error) {
           console.error('Error fetching polygon road length:', error);
