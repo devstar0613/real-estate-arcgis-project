@@ -656,8 +656,8 @@ export default function MapComponent() {
           if(roadLength.data?.length){
             const poles= Math.floor(roadLength.data.length * 3.28084 / 16.5);
             setTotalPoles(poles);
-            const length = roadLength.data.length * 3.28084;
-            setPolygonRoadLength(Math.floor(length));
+            const length = roadLength.data.length / 1609.34;
+            setPolygonRoadLength(length.toFixed(3));
           }
         } catch (error) {
           console.error('Error fetching polygon road length:', error);
@@ -1218,7 +1218,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {polygonRoadLength} feet
+                          {polygonRoadLength} mile
                         </div>
                       </div>
                       <hr />
