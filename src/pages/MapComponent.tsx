@@ -1218,7 +1218,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {polygonRoadLength} mile
+                          {polygonRoadLength} miles ({polygonRoadLength*5280} feet)
                         </div>
                       </div>
                       <hr />
@@ -1227,7 +1227,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Market Passings:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {fetchedParcels.length}
+                          {fetchedParcels.length} premises
                         </div>
                       </div>
                       <hr />
