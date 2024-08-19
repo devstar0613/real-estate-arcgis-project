@@ -1091,6 +1091,10 @@ export default function MapComponent() {
     }
   };
 
+  const formatNumberWithCommas = (number:any) => {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+  
   return (
     <section id="map-page-container" className="h-screen">
       <Header />
@@ -1218,7 +1222,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {polygonRoadLength} miles ({polygonRoadLength*5280} feet)
+                          {polygonRoadLength} miles ({formatNumberWithCommas(polygonRoadLength*5280)} feet)
                         </div>
                       </div>
                       <hr />
@@ -1227,7 +1231,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Market Passings:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {fetchedParcels.length} premises
+                          {formatNumberWithCommas(fetchedParcels.length)} premises
                         </div>
                       </div>
                       <hr />
@@ -1236,7 +1240,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Est. Total Poles:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {totalPoles} poles
+                          {formatNumberWithCommas(totalPoles)} poles
                         </div>
                       </div>
                       <hr />
