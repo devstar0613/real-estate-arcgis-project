@@ -23,11 +23,12 @@ const EmailVerificationRequired: React.FC<{ email: string | undefined, auth0_sub
     try {
       setIsLoading(true);
       const identity_id = auth0_sub?.substring(auth0_sub.indexOf('|') + 1);
+      const parts = auth0_sub?.split('|');
       let data = {
         user_id: auth0_sub,
         identity: {
           user_id: identity_id,
-          provider: 'auth0'
+          provider: parts?.[0]
         }
       }
       const response = await api.sendVerificationEmail(data);
