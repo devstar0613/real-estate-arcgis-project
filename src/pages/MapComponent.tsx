@@ -1118,13 +1118,13 @@ export default function MapComponent() {
                     </div>
                     <p className="left_bar_letter">FCC Data</p>
                   </div>
-                  <div className="left_bar_item">
+                  {/* <div className="left_bar_item">
                     <div className="custom_checkbox_outside">
                     {isElevationSelected &&
                       <div className="custom_checkbox_inside"></div>}
                     </div>
                     <p className="left_bar_letter">Elevation</p>
-                  </div>
+                  </div> */}
                   <hr style={{marginBottom:'15px'}}/>
                 </div>
                 <div>
@@ -1167,14 +1167,14 @@ export default function MapComponent() {
                     />
                     <p className="left_bar_letter">Export Addresses</p>
                   </div>
-                  <div className="left_bar_item">
+                  {/* <div className="left_bar_item">
                     <img
                       src="/summary_report.png"
                       alt="summary report"
                       className="left_bar_icon"
                     />
                     <p className="left_bar_letter">Summary Report</p>
-                  </div>
+                  </div> */}
                   <hr style={{marginBottom:'15px'}}/>
                 </div>
                 <div>
@@ -1186,7 +1186,7 @@ export default function MapComponent() {
                     />
                     <p className="left_bar_letter">Job Request</p>
                   </div>
-                  <div className="left_bar_item" onClick={handleViewMyAssets}>
+                  {/* <div className="left_bar_item" onClick={handleViewMyAssets}>
                     <img
                       src="/white_network.png"
                       alt="view my assets"
@@ -1209,7 +1209,7 @@ export default function MapComponent() {
                       className="left_bar_icon"
                     />
                     <p className="left_bar_letter">Access Training</p>
-                  </div>
+                  </div> */}
                 </div>
               </SplitterPanel>
               <SplitterPanel className="align-items-center justify-content-center middle-bar" style={{display: showLeftMenu? 'block': 'none'}} size={25} minSize={10}>
