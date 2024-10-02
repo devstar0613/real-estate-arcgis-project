@@ -1061,11 +1061,11 @@ export default function MapComponent() {
   }, [isFCCSelected]);
 
   useEffect(() => {
-    console.error('===============user:', user);
+    console.log('===============user:', user);
     setIsEmailVerified(user?.email_verified)
     const fetchUserInfo = async () => {
       try {
-        const response = await api.getUserInfo(user?.email);
+        const response = await api.getUserInfo(user?.sub);
         setSubscriptionStatus(response.data.plan);
       } catch (error) {
         console.error('Error fetching user info:', error);

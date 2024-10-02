@@ -30,14 +30,14 @@ export default function Header() {
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const response = await api.getUserInfo(user?.email);
+        const response = await api.getUserInfo(user?.sub);
         setUserInfo(response.data);
       } catch (error) {
         console.error('Error fetching user info:', error);
       }
     };
 
-    if (user?.email) {
+    if (user?.sub) {
       fetchUserInfo();
     }
   }, [user]);
@@ -111,7 +111,7 @@ export default function Header() {
             <p>Plan:&nbsp;
               <span>
                 {userInfo && userInfo.plan=== 'Pro' && 
-                  `Pro (Expired at 08/05/2024)`
+                  `Pro`
                 }
                 {userInfo && userInfo.plan=== 'Free Trial' && 
                   <>

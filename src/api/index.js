@@ -17,7 +17,7 @@ export const allJobs = () => API.get('/all_jobs');
 export const resolveJob = (job_id) => API.get(`/jobs/resolve/${job_id}`);
 export const removeJob = (job_id) => API.get(`/jobs/remove/${job_id}`);
 export const getCheckoutUrl = (auth0_sub) => API.get(`/create_checkout_session/${auth0_sub}`);
-export const getUserInfo = (email) => API.get(`/get_user/${email}`);
+export const getUserInfo = (sub) => API.get(`/get_user/${sub}`);
 
 // POST APIs
 export const newJob = (body) => API.post(`/new_job`, body);
