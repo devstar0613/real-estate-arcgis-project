@@ -1222,7 +1222,7 @@ export default function MapComponent() {
                           <span style={{ fontWeight: '500' }}>Total Roads Distance:</span>&nbsp;
                         </div>
                         <div style={{ flex: '40%' }}>
-                          {polygonRoadLength} miles ({formatNumberWithCommas(polygonRoadLength*5280)} feet)
+                          {polygonRoadLength} miles ({formatNumberWithCommas((polygonRoadLength*5280).toFixed(0))} feet)
                         </div>
                       </div>
                       <hr />
